@@ -1,0 +1,43 @@
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 2.0
+
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/LineLength:
+  Max: 80
+
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: no_space
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
+
+Style/AccessorGrouping:
+  EnforcedStyle: separated
+
+Style/CommentedKeyword:
+  Enabled: false
+
+Style/FetchEnvVar:
+  AllowedVars:
+    - COVERAGE
+
+Style/LambdaCall:
+  EnforcedStyle: braces
+
+Style/ParallelAssignment:
+  Enabled: false
+
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  Enabled: true
+  EnforcedStyle: double_quotes
