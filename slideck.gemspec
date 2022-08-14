@@ -27,6 +27,12 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
   spec.required_ruby_version = ">= 2.0.0"
 
+  spec.add_dependency "strings-ansi", "~> 0.2.0"
+  spec.add_dependency "tty-cursor", "~> 0.7.1"
+  spec.add_dependency "tty-markdown", "~> 0.7.0"
+  spec.add_dependency "tty-reader", "~> 0.9.0"
+  spec.add_dependency "tty-screen", "~> 0.8.1"
+
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rspec", ">= 3.0"
 end

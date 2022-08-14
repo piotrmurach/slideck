@@ -1,3 +1,5 @@
 #!/usr/bin/env ruby
 
 require_relative "../lib/slideck"
+
+Slideck.run
