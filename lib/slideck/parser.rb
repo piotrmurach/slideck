@@ -32,31 +32,28 @@ module Slideck
     # Create a Parser instance
     #
     # @example
-    #   Parser.new(StringScanner, YAML, {})
+    #   Parser.new(StringScanner, Slideck::MetadataParser)
     #
     # @param [StringScanner] string_scanner
     #   the content scanner
-    # @param [YAML] metadata_parser
+    # @param [Slideck::MetadataParser] metadata_parser
     #   the metadata parser
-    # @param [Hash{Symbol => Object}] parser_settings
-    #   the metadata parser settings
     #
     # @api public
-    def initialize(string_scanner, metadata_parser, parser_settings)
+    def initialize(string_scanner, metadata_parser)
       @string_scanner = string_scanner
       @metadata_parser = metadata_parser
-      @parser_settings = parser_settings
     end
 
     # Parse metadata and slides from content
     #
     # @example
-    #   Parser.parse("align: center\n---\nSlide1\n---\nSlide2\n---")
+    #   parser.parse("align: center\n---\nSlide1\n---\nSlide2\n---")
     #
     # @param [String] content
     #   the content to parse slides from
     #
-    # @return [Hash{Symbol => Hash,Array<String>}]
+    # @return [Hash{Symbol => Hash, Array<String>}]
     #   the metadata and slides content
     #
     # @api public
@@ -121,7 +118,7 @@ module Slideck
     def extract_metadata(slide)
       return {} if slide.nil? || !metadata_given?(slide)
 
-      parse_metadata(slide)
+      @metadata_parser.parse(slide)
     end
 
     # Check whether or not metadata is given
@@ -134,27 +131,6 @@ module Slideck
     # @api private
     def metadata_given?(content)
       !(content.lines.first =~ METADATA_PATTERN).nil?
-    end
-
-    # Parse metadata content into a hash
-    #
-    # @param [String] content
-    #   the metadata content to parse
-    #
-    # @return [Hash{Symbol => Object}]
-    #
-    # @api private
-    def parse_metadata(content)
-      @metadata_parser.send(parse_method, content, **@parser_settings)
-    end
-
-    # Select a metadata parse method
-    #
-    # @return [Symbol]
-    #
-    # @api private
-    def parse_method
-      @metadata_parser.respond_to?(:safe_load) ? :safe_load : :load
     end
   end # Parser
 end # Slideck

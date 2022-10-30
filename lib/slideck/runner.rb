@@ -15,6 +15,7 @@ require_relative "loader"
 require_relative "metadata"
 require_relative "metadata_converter"
 require_relative "metadata_defaults"
+require_relative "metadata_parser"
 require_relative "parser"
 require_relative "presenter"
 require_relative "renderer"
@@ -113,8 +114,9 @@ module Slideck
     #
     # @api private
     def parse_slides(content)
-      parser_settings = {symbolize_names: true, permitted_classes: [Symbol]}
-      parser = Parser.new(::StringScanner, ::YAML, parser_settings)
+      metadata_parser = MetadataParser.new(::YAML, permitted_classes: [Symbol],
+                                                   symbolize_names: true)
+      parser = Parser.new(::StringScanner, metadata_parser)
       deck = parser.parse(content)
       metadata = build_metadata(deck[:metadata])
 

@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 RSpec.describe Slideck::Parser, "#parse" do
-  let(:parser_settings) {
-    {symbolize_names: true, permitted_classes: [Symbol]}
+  let(:metadata_parser) {
+    Slideck::MetadataParser.new(::YAML, permitted_classes: [Symbol],
+                                        symbolize_names: true)
   }
 
   it "parses empty content" do
-    parser = described_class.new(StringScanner, YAML, parser_settings)
+    parser = described_class.new(StringScanner, metadata_parser)
 
     deck = parser.parse("")
 
@@ -24,7 +25,7 @@ RSpec.describe Slideck::Parser, "#parse" do
     ---
     # Slide 3
     EOS
-    parser = described_class.new(StringScanner, YAML, parser_settings)
+    parser = described_class.new(StringScanner, metadata_parser)
 
     deck = parser.parse(content)
 
@@ -58,7 +59,7 @@ RSpec.describe Slideck::Parser, "#parse" do
       Content 3
 
     EOS
-    parser = described_class.new(StringScanner, YAML, parser_settings)
+    parser = described_class.new(StringScanner, metadata_parser)
 
     deck = parser.parse(content)
 
@@ -78,7 +79,7 @@ RSpec.describe Slideck::Parser, "#parse" do
     footer: footer content
     pager: "page %<page>d of %<total>d"
     EOS
-    parser = described_class.new(StringScanner, YAML, parser_settings)
+    parser = described_class.new(StringScanner, metadata_parser)
 
     deck = parser.parse(content)
 
@@ -104,7 +105,7 @@ RSpec.describe Slideck::Parser, "#parse" do
     ---
     # Slide 3
     EOS
-    parser = described_class.new(StringScanner, YAML, parser_settings)
+    parser = described_class.new(StringScanner, metadata_parser)
 
     deck = parser.parse(content)
 
@@ -136,7 +137,7 @@ RSpec.describe Slideck::Parser, "#parse" do
     # Slide 3
     ---
     EOS
-    parser = described_class.new(StringScanner, YAML, parser_settings)
+    parser = described_class.new(StringScanner, metadata_parser)
 
     deck = parser.parse(content)
 
