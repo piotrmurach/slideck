@@ -93,6 +93,26 @@ RSpec.describe Slideck::Parser, "#parse" do
     })
   end
 
+  it "parses only indented metadata with symbol keys" do
+    content = unindent(<<-EOS)
+      :align: center
+      :footer: footer content
+      :pager: "page %<page>d of %<total>d"
+    EOS
+    parser = described_class.new(StringScanner, metadata_parser)
+
+    deck = parser.parse(content)
+
+    expect(deck).to eq({
+      metadata: {
+        align: "center",
+        footer: "footer content",
+        pager: "page %<page>d of %<total>d"
+      },
+      slides: []
+    })
+  end
+
   it "parses slides with content and metadata" do
     content = unindent(<<-EOS)
     align: center

@@ -10,7 +10,7 @@ module Slideck
     # @return [Regexp]
     #
     # @api private
-    METADATA_PATTERN = /^[^:]+:[^:]+$/.freeze
+    METADATA_PATTERN = /^\s*:?[^:]+:[^:]+$/.freeze
     private_constant :METADATA_PATTERN
 
     # The pattern to detect slide separator
