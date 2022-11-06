@@ -81,7 +81,7 @@ module Slideck
                                interrupt: :exit)
       screen_width = @screen.width
       converter = Converter.new(TTY::Markdown, color: @color,
-                                width: screen_width)
+                                               width: screen_width)
       renderer = Renderer.new(converter, Strings::ANSI, TTY::Cursor, metadata,
                               width: screen_width, height: @screen.height)
       tracker = Tracker.for(slides.size)
@@ -110,30 +110,47 @@ module Slideck
     # @param [String] content
     #   the content with metadata and slides
     #
-    # @return [Array<Slideck::Metadata, Array<String>>]
+    # @return [Array<Slideck::Metadata, Hash>]
     #
     # @api private
     def parse_slides(content)
       metadata_parser = MetadataParser.new(::YAML, permitted_classes: [Symbol],
                                                    symbolize_names: true)
       parser = Parser.new(::StringScanner, metadata_parser)
-      deck = parser.parse(content)
-      metadata = build_metadata(deck[:metadata])
+      wrap_metadata(parser.parse(content))
+    end
 
-      [metadata, deck[:slides]]
+    # Wrap parsed slides metadata
+    #
+    # @param [Hash] deck
+    #   the deck of parsed slides
+    #
+    # @return [Array<Slideck::Metadata, Hash>]
+    #
+    # @api private
+    def wrap_metadata(deck)
+      metadata_defaults = MetadataDefaults.new(Alignment)
+      metadata = build_metadata(deck[:metadata], metadata_defaults)
+      slides = deck[:slides].map do |slide|
+        {content: slide[:content],
+         metadata: build_metadata(slide[:metadata], {})}
+      end
+
+      [metadata, slides]
     end
 
     # Build metadata
     #
     # @param [Hash{Symbol => Object}] custom_metadata
     #   the custom metadata
+    # @param [#merge] metadata_defaults
+    #   the metadata defaults to merge with
     #
     # @return [Slideck::Metadata]
     #
     # @api private
-    def build_metadata(custom_metadata)
+    def build_metadata(custom_metadata, metadata_defaults)
       metadata_converter = MetadataConverter.new(Alignment)
-      metadata_defaults = MetadataDefaults.new(Alignment)
 
       Metadata.from(metadata_converter, custom_metadata, metadata_defaults)
     end

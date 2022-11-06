@@ -12,9 +12,12 @@ RSpec.describe Slideck::Presenter, "#start" do
   let(:meta_converter) { Slideck::MetadataConverter.new(alignment) }
   let(:meta_defaults) { Slideck::MetadataDefaults.new(alignment) }
   let(:metadata) { Slideck::Metadata.from(meta_converter, {}, meta_defaults) }
+  let(:slide_metadata) { Slideck::Metadata.from(meta_converter, {}, {}) }
 
   it "quits slides immediately with 'q' key" do
-    slides = %w[slide1 slide2 slide3]
+    slides = [{content: "slide1", metadata: slide_metadata},
+              {content: "slide2", metadata: slide_metadata},
+              {content: "slide3", metadata: slide_metadata}]
     tracker = Slideck::Tracker.for(slides.size)
     converter = Slideck::Converter.new(markdown, color: true, width: 20)
     renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
@@ -34,7 +37,9 @@ RSpec.describe Slideck::Presenter, "#start" do
   end
 
   it "navigates slides with letter keys and quits with Ctrl+X" do
-    slides = %w[slide1 slide2 slide3]
+    slides = [{content: "slide1", metadata: slide_metadata},
+              {content: "slide2", metadata: slide_metadata},
+              {content: "slide3", metadata: slide_metadata}]
     tracker = Slideck::Tracker.for(slides.size)
     converter = Slideck::Converter.new(markdown, color: true, width: 20)
     renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
@@ -66,7 +71,9 @@ RSpec.describe Slideck::Presenter, "#start" do
   end
 
   it "navigates slides with arrow, page up/down, space and backspace keys" do
-    slides = %w[slide1 slide2 slide3]
+    slides = [{content: "slide1", metadata: slide_metadata},
+              {content: "slide2", metadata: slide_metadata},
+              {content: "slide3", metadata: slide_metadata}]
     tracker = Slideck::Tracker.for(slides.size)
     converter = Slideck::Converter.new(markdown, color: true, width: 20)
     renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
@@ -111,7 +118,9 @@ RSpec.describe Slideck::Presenter, "#start" do
   end
 
   it "navigates straight to the last and first slide and quits with Esc" do
-    slides = %w[slide1 slide2 slide3]
+    slides = [{content: "slide1", metadata: slide_metadata},
+              {content: "slide2", metadata: slide_metadata},
+              {content: "slide3", metadata: slide_metadata}]
     tracker = Slideck::Tracker.for(slides.size)
     converter = Slideck::Converter.new(markdown, color: true, width: 20)
     renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
@@ -137,7 +146,9 @@ RSpec.describe Slideck::Presenter, "#start" do
   end
 
   it "navigates to a specific slide and exits with Ctrl+C" do
-    slides = Array.new(15) { |i| "slide#{i + 1}" }
+    slides = Array.new(15) do |i|
+      {content: "slide#{i + 1}", metadata: slide_metadata}
+    end
     tracker = Slideck::Tracker.for(slides.size)
     converter = Slideck::Converter.new(markdown, color: true, width: 20)
     renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,

@@ -12,6 +12,10 @@ RSpec.describe Slideck::Renderer do
     Slideck::Metadata.from(meta_converter, custom_metadata, meta_defaults)
   end
 
+  def build_slide_metadata(custom_metadata)
+    Slideck::Metadata.from(meta_converter, custom_metadata, {})
+  end
+
   describe "#render" do
     it "renders page number without slide content" do
       metadata = build_metadata({})
@@ -24,13 +28,38 @@ RSpec.describe Slideck::Renderer do
       ].join.inspect)
     end
 
+    it "renders footer without slide content and pager" do
+      metadata = build_metadata({footer: "footer", pager: ""})
+      converter = Slideck::Converter.new(markdown, color: true, width: 20)
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 8)
+
+      expect(renderer.render(nil, 0, 0).inspect).to eq([
+        "\e[8;1Hfooter"
+      ].join.inspect)
+    end
+
+    it "renders slide content without footer and pager" do
+      metadata = build_metadata({footer: "", pager: ""})
+      converter = Slideck::Converter.new(markdown, color: true, width: 20)
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 8)
+      slide = {content: "content", metadata: build_slide_metadata({})}
+
+      expect(renderer.render(slide, 0, 0).inspect).to eq([
+        "\e[1;1Hcontent\n"
+      ].join.inspect)
+    end
+
     it "renders multiline content with page number" do
       metadata = build_metadata({})
       converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
+      slide = {content: "line1\nline2\nline3",
+               metadata: build_slide_metadata({})}
 
-      expect(renderer.render("line1\nline2\nline3", 1, 4).inspect).to eq([
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
         "\e[1;1Hline1\n",
         "\e[2;1Hline2\n",
         "\e[3;1Hline3\n",
@@ -54,8 +83,9 @@ RSpec.describe Slideck::Renderer do
         converter = Slideck::Converter.new(markdown, color: true, width: 20)
         renderer = described_class.new(converter, ansi, cursor, metadata,
                                        width: 20, height: 8)
+        slide = {content: "content", metadata: build_slide_metadata({})}
 
-        expect(renderer.render("content", 1, 4).inspect).to eq([
+        expect(renderer.render(slide, 1, 4).inspect).to eq([
           "\e[#{pos}Hcontent\n",
           "\e[8;16H1 / 4"
         ].join.inspect)
@@ -67,13 +97,13 @@ RSpec.describe Slideck::Renderer do
       converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
-
-      slide = unindent(<<-EOS)
+      content = unindent(<<-EOS)
         # List
         - a
         - b
         - c
       EOS
+      slide = {content: content, metadata: build_slide_metadata({})}
 
       expect(renderer.render(slide, 1, 4).inspect).to eq([
         "\e[1;1H\e[36;1;4mList\e[0m\n",
@@ -89,13 +119,13 @@ RSpec.describe Slideck::Renderer do
       converter = Slideck::Converter.new(markdown, color: false, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
-
-      slide = unindent(<<-EOS)
+      content = unindent(<<-EOS)
         # List
         - a
         - b
         - c
       EOS
+      slide = {content: content, metadata: build_slide_metadata({})}
 
       expect(renderer.render(slide, 1, 4).inspect).to eq([
         "\e[1;1HList\n",
@@ -111,8 +141,9 @@ RSpec.describe Slideck::Renderer do
       converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
+      slide = {content: "content", metadata: build_slide_metadata({})}
 
-      expect(renderer.render("content", 1, 4).inspect).to eq([
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
         "\e[1;1Hcontent\n",
         "\e[8;1Hfooter\e[8;16H1 / 4"
       ].join.inspect)
@@ -123,8 +154,9 @@ RSpec.describe Slideck::Renderer do
       converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
+      slide = {content: "content", metadata: build_slide_metadata({})}
 
-      expect(renderer.render("content", 1, 4).inspect).to eq([
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
         "\e[1;1Hcontent\n",
         "\e[8;1H\e[33;1mbold\e[0m footer\e[8;16H1 / 4"
       ].join.inspect)
@@ -135,8 +167,9 @@ RSpec.describe Slideck::Renderer do
       converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
+      slide = {content: "content", metadata: build_slide_metadata({})}
 
-      expect(renderer.render("content", 1, 4).inspect).to eq([
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
         "\e[1;1Hcontent\n",
         "\e[8;15H\e[33;1m1 of 4\e[0m"
       ].join.inspect)
@@ -152,8 +185,9 @@ RSpec.describe Slideck::Renderer do
       converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
+      slide = {content: "content", metadata: build_slide_metadata({})}
 
-      expect(renderer.render("content", 1, 4).inspect).to eq([
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
         "\e[1;1Hcontent\n",
         "\e[8;8Hfooter\e[8;16H1 / 4"
       ].join.inspect)
@@ -179,8 +213,9 @@ RSpec.describe Slideck::Renderer do
         converter = Slideck::Converter.new(markdown, color: true, width: 20)
         renderer = described_class.new(converter, ansi, cursor, metadata,
                                        width: 20, height: 8)
+        slide = {content: "content", metadata: build_slide_metadata({})}
 
-        expect(renderer.render("content", 1, 4).inspect).to eq([
+        expect(renderer.render(slide, 1, 4).inspect).to eq([
           "\e[1;1Hcontent\n",
           "\e[#{footer[:pos]}Hfooter\e[#{pager[:pos]}H1 of 4"
         ].join.inspect)
@@ -198,8 +233,9 @@ RSpec.describe Slideck::Renderer do
       converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
+      slide = {content: "content", metadata: build_slide_metadata({})}
 
-      expect(renderer.render("content", 1, 4).inspect).to eq([
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
         "\e[1;1Hcontent\n",
         "\e[8;15Hfooter"
       ].join.inspect)
@@ -218,14 +254,92 @@ RSpec.describe Slideck::Renderer do
       converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
+      slide = {content: "content", metadata: build_slide_metadata({})}
 
-      expect(renderer.render("content", 1, 4).inspect).to eq([
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
         "\e[1;1Hcontent\n",
         "\e[6;7Hfooter1\n",
         "\e[7;7Hfooter2\n",
         "\e[8;7Hfooter3",
         "\e[7;19H1\n",
         "\e[8;19H4"
+      ].join.inspect)
+    end
+
+    it "renders content with overridden alignment, footer and pager" do
+      metadata = build_metadata({
+        align: "left",
+        footer: {
+          align: "center",
+          text: "global footer"
+        }
+      })
+      slide_metadata = build_slide_metadata({
+        align: "right",
+        footer: {
+          align: "left",
+          text: "slide footer"
+        },
+        pager: {
+          align: "center",
+          text: "%<page>d of %<total>d"
+        }
+      })
+      converter = Slideck::Converter.new(markdown, color: true, width: 20)
+      slide = {content: "content", metadata: slide_metadata}
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 8)
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[4;13Hcontent\n",
+        "\e[8;1Hslide footer",
+        "\e[8;8H1 of 4"
+      ].join.inspect)
+    end
+
+    it "renders content with global metadata and no footer or pager" do
+      metadata = build_metadata({
+        footer: {
+          align: "center",
+          text: "global footer"
+        }
+      })
+      slide_metadata = build_slide_metadata({
+        footer: "",
+        pager: ""
+      })
+      converter = Slideck::Converter.new(markdown, color: true, width: 20)
+      slide = {content: "content", metadata: slide_metadata}
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 8)
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[1;1Hcontent\n"
+      ].join.inspect)
+    end
+
+    it "renders content with disabled global metadata and footer and pager" do
+      metadata = build_metadata({
+        footer: false,
+        pager: false
+      })
+      slide_metadata = build_slide_metadata({
+        footer: {
+          text: "slide footer"
+        },
+        pager: {
+          text: "%<page>d of %<total>d"
+        }
+      })
+      converter = Slideck::Converter.new(markdown, color: true, width: 20)
+      slide = {content: "content", metadata: slide_metadata}
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 8)
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[1;1Hcontent\n",
+        "\e[8;1Hslide footer",
+        "\e[8;15H1 of 4"
       ].join.inspect)
     end
   end

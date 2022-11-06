@@ -56,10 +56,11 @@ module Slideck
     #
     # @api public
     def render(slide, current_num, num_of_slides)
+      slide_metadata = slide && slide[:metadata]
       [].tap do |out|
         out << render_content(slide) if slide
-        out << render_footer if @metadata.footer?
-        out << render_pager(current_num, num_of_slides) if @metadata.pager?
+        out << render_footer(slide_metadata)
+        out << render_pager(slide_metadata, current_num, num_of_slides)
       end.join
     end
 
@@ -86,18 +87,26 @@ module Slideck
     #
     # @api private
     def render_content(slide)
-      converted = convert_markdown(slide)
-      render_section(converted.lines, @metadata.align)
+      converted = convert_markdown(slide[:content])
+      alignment = slide[:metadata].align || @metadata.align
+
+      render_section(converted.lines, alignment)
     end
 
     # Render footer
     #
+    # @param [Slideck::Metadata] slide_metadata
+    #   the slide metadata
+    #
     # @return [String]
     #
     # @api private
-    def render_footer
-      alignment = @metadata.footer[:align]
-      text = @metadata.footer[:text]
+    def render_footer(slide_metadata)
+      footer_metadata = slide_metadata && slide_metadata.footer
+      footer_metadata ||= @metadata.footer
+      return if (text = footer_metadata[:text]).empty?
+
+      alignment = footer_metadata[:align] || @metadata.footer[:align]
       converted = convert_markdown(text).chomp
 
       render_section(converted.lines, alignment)
@@ -105,6 +114,8 @@ module Slideck
 
     # Render pager
     #
+    # @param [Slideck::Metadata] slide_metadata
+    #   the slide metadata
     # @param [Integer] current_num
     #   the current slide number
     # @param [Integer] num_of_slides
@@ -113,9 +124,12 @@ module Slideck
     # @return [String]
     #
     # @api private
-    def render_pager(current_num, num_of_slides)
-      alignment = @metadata.pager[:align]
-      text = @metadata.pager[:text]
+    def render_pager(slide_metadata, current_num, num_of_slides)
+      pager_metadata = slide_metadata && slide_metadata.pager
+      pager_metadata ||= @metadata.pager
+      return if (text = pager_metadata[:text]).empty?
+
+      alignment = pager_metadata[:align] || @metadata.pager[:align]
       formatted_text = format(text, page: current_num, total: num_of_slides)
       converted = convert_markdown(formatted_text).chomp
 

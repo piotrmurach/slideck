@@ -10,7 +10,7 @@ module Slideck
     # @return [Regexp]
     #
     # @api private
-    METADATA_PATTERN = /^\s*:?[^:]+:[^:]+$/.freeze
+    METADATA_PATTERN = /^\s*:?[^:]+:[^:]+/.freeze
     private_constant :METADATA_PATTERN
 
     # The pattern to detect slide separator
@@ -18,7 +18,7 @@ module Slideck
     # @return [Regexp]
     #
     # @api private
-    SLIDE_SEPARATOR = /\n?-{3,}\n/.freeze
+    SLIDE_SEPARATOR = /\n?-{3,}([^\n]*)\n/.freeze
     private_constant :SLIDE_SEPARATOR
 
     # The pattern to match entire lines
@@ -60,7 +60,7 @@ module Slideck
     def parse(content)
       scanner = @string_scanner.new(content)
       slides = split_into_slides(scanner)
-      metadata = extract_metadata(slides.first)
+      metadata = extract_metadata(slides.first && slides.first[:content])
 
       {metadata: metadata, slides: metadata.empty? ? slides : slides[1..-1]}
     end
@@ -76,11 +76,12 @@ module Slideck
     #
     # @api private
     def split_into_slides(scanner)
-      slides, slide = [], []
+      slides, slide, slide_metadata = [], [], {}
 
       until scanner.eos?
         if scanner.scan(SLIDE_SEPARATOR)
-          slides = add_slide(slides, slide.join)
+          slides = add_slide(slides, slide.join, slide_metadata)
+          slide_metadata = extract_metadata(scanner[1])
           slide.clear
         elsif scanner.scan(LINE_PATTERN)
           slide << scanner.matched
@@ -89,7 +90,7 @@ module Slideck
         end
       end
 
-      add_slide(slides, slide.join.chomp)
+      add_slide(slides, slide.join.chomp, slide_metadata)
     end
 
     # Add a slide to slides
@@ -98,14 +99,16 @@ module Slideck
     #   the slides array
     # @param [String] slide
     #   the slide to add to slides
+    # @param [Hash{String, Symbol => Object}] slide_metadata
+    #   the slide metadata
     #
-    # @return [Array<String>]
+    # @return [Array<Hash{Symbol => Hash, String}>]
     #
     # @api private
-    def add_slide(slides, slide)
+    def add_slide(slides, slide, slide_metadata)
       return slides if slide.empty?
 
-      slides + [slide]
+      slides + [{content: slide, metadata: slide_metadata}]
     end
 
     # Extract metadata from a slide
