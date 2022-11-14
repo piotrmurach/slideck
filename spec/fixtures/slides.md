@@ -1,6 +1,7 @@
 ---
 align: center
 footer: "**footer content**"
+margin: 1 2
 pager: "page %<page>d of %<total>d"
 ---
 

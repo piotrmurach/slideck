@@ -8,9 +8,11 @@ RSpec.describe Slideck::Presenter, "#start" do
   let(:ansi) { Strings::ANSI }
   let(:cursor) { TTY::Cursor }
   let(:markdown) { TTY::Markdown }
+  let(:converter) { Slideck::Converter.new(markdown, color: true) }
   let(:alignment) { Slideck::Alignment }
-  let(:meta_converter) { Slideck::MetadataConverter.new(alignment) }
-  let(:meta_defaults) { Slideck::MetadataDefaults.new(alignment) }
+  let(:margin) { Slideck::Margin }
+  let(:meta_converter) { Slideck::MetadataConverter.new(alignment, margin) }
+  let(:meta_defaults) { Slideck::MetadataDefaults.new(alignment, margin) }
   let(:metadata) { Slideck::Metadata.from(meta_converter, {}, meta_defaults) }
   let(:slide_metadata) { Slideck::Metadata.from(meta_converter, {}, {}) }
 
@@ -19,7 +21,6 @@ RSpec.describe Slideck::Presenter, "#start" do
               {content: "slide2", metadata: slide_metadata},
               {content: "slide3", metadata: slide_metadata}]
     tracker = Slideck::Tracker.for(slides.size)
-    converter = Slideck::Converter.new(markdown, color: true, width: 20)
     renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
     presenter = described_class.new(reader, renderer, tracker, output)
@@ -41,7 +42,6 @@ RSpec.describe Slideck::Presenter, "#start" do
               {content: "slide2", metadata: slide_metadata},
               {content: "slide3", metadata: slide_metadata}]
     tracker = Slideck::Tracker.for(slides.size)
-    converter = Slideck::Converter.new(markdown, color: true, width: 20)
     renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
     presenter = described_class.new(reader, renderer, tracker, output)
@@ -75,7 +75,6 @@ RSpec.describe Slideck::Presenter, "#start" do
               {content: "slide2", metadata: slide_metadata},
               {content: "slide3", metadata: slide_metadata}]
     tracker = Slideck::Tracker.for(slides.size)
-    converter = Slideck::Converter.new(markdown, color: true, width: 20)
     renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
     presenter = described_class.new(reader, renderer, tracker, output)
@@ -122,7 +121,6 @@ RSpec.describe Slideck::Presenter, "#start" do
               {content: "slide2", metadata: slide_metadata},
               {content: "slide3", metadata: slide_metadata}]
     tracker = Slideck::Tracker.for(slides.size)
-    converter = Slideck::Converter.new(markdown, color: true, width: 20)
     renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
     presenter = described_class.new(reader, renderer, tracker, output)
@@ -150,7 +148,6 @@ RSpec.describe Slideck::Presenter, "#start" do
       {content: "slide#{i + 1}", metadata: slide_metadata}
     end
     tracker = Slideck::Tracker.for(slides.size)
-    converter = Slideck::Converter.new(markdown, color: true, width: 20)
     renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
 

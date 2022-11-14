@@ -12,6 +12,7 @@ require_relative "alignment"
 require_relative "converter"
 require_relative "errors"
 require_relative "loader"
+require_relative "margin"
 require_relative "metadata"
 require_relative "metadata_converter"
 require_relative "metadata_defaults"
@@ -79,11 +80,9 @@ module Slideck
 
       reader = TTY::Reader.new(input: @input, output: @output, env: @env,
                                interrupt: :exit)
-      screen_width = @screen.width
-      converter = Converter.new(TTY::Markdown, color: @color,
-                                               width: screen_width)
+      converter = Converter.new(TTY::Markdown, color: @color)
       renderer = Renderer.new(converter, Strings::ANSI, TTY::Cursor, metadata,
-                              width: screen_width, height: @screen.height)
+                              width: @screen.width, height: @screen.height)
       tracker = Tracker.for(slides.size)
       presenter = Presenter.new(reader, renderer, tracker, @output)
 
@@ -129,7 +128,7 @@ module Slideck
     #
     # @api private
     def wrap_metadata(deck)
-      metadata_defaults = MetadataDefaults.new(Alignment)
+      metadata_defaults = MetadataDefaults.new(Alignment, Margin)
       metadata = build_metadata(deck[:metadata], metadata_defaults)
       slides = deck[:slides].map do |slide|
         {content: slide[:content],
@@ -150,7 +149,7 @@ module Slideck
     #
     # @api private
     def build_metadata(custom_metadata, metadata_defaults)
-      metadata_converter = MetadataConverter.new(Alignment)
+      metadata_converter = MetadataConverter.new(Alignment, Margin)
 
       Metadata.from(metadata_converter, custom_metadata, metadata_defaults)
     end

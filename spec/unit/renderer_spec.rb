@@ -4,9 +4,11 @@ RSpec.describe Slideck::Renderer do
   let(:ansi) { Strings::ANSI }
   let(:cursor) { TTY::Cursor }
   let(:markdown) { TTY::Markdown }
+  let(:converter) { Slideck::Converter.new(markdown, color: true) }
   let(:alignment) { Slideck::Alignment }
-  let(:meta_defaults) { Slideck::MetadataDefaults.new(alignment) }
-  let(:meta_converter) { Slideck::MetadataConverter.new(alignment) }
+  let(:margin) { Slideck::Margin }
+  let(:meta_defaults) { Slideck::MetadataDefaults.new(alignment, margin) }
+  let(:meta_converter) { Slideck::MetadataConverter.new(alignment, margin) }
 
   def build_metadata(custom_metadata)
     Slideck::Metadata.from(meta_converter, custom_metadata, meta_defaults)
@@ -19,7 +21,6 @@ RSpec.describe Slideck::Renderer do
   describe "#render" do
     it "renders page number without slide content" do
       metadata = build_metadata({})
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
 
@@ -30,7 +31,6 @@ RSpec.describe Slideck::Renderer do
 
     it "renders footer without slide content and pager" do
       metadata = build_metadata({footer: "footer", pager: ""})
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
 
@@ -41,7 +41,6 @@ RSpec.describe Slideck::Renderer do
 
     it "renders slide content without footer and pager" do
       metadata = build_metadata({footer: "", pager: ""})
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
       slide = {content: "content", metadata: build_slide_metadata({})}
@@ -53,7 +52,6 @@ RSpec.describe Slideck::Renderer do
 
     it "renders multiline content with page number" do
       metadata = build_metadata({})
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
       slide = {content: "line1\nline2\nline3",
@@ -80,7 +78,6 @@ RSpec.describe Slideck::Renderer do
     }.each do |align, pos|
       it "renders slide with content at #{align.inspect}" do
         metadata = build_metadata({align: align})
-        converter = Slideck::Converter.new(markdown, color: true, width: 20)
         renderer = described_class.new(converter, ansi, cursor, metadata,
                                        width: 20, height: 8)
         slide = {content: "content", metadata: build_slide_metadata({})}
@@ -92,9 +89,68 @@ RSpec.describe Slideck::Renderer do
       end
     end
 
+    it "renders content with a margin" do
+      metadata = build_metadata({margin: [1, 2, 3, 4]})
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 10)
+      slide = {content: "content", metadata: build_slide_metadata({})}
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[2;5Hcontent\n",
+        "\e[7;14H1 / 4"
+      ].join.inspect)
+    end
+
+    it "renders multiline content with a margin" do
+      metadata = build_metadata({margin: [1, 2, 3, 4]})
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 10)
+      slide = {content: "line1\nline2\nline3",
+               metadata: build_slide_metadata({})}
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[2;5Hline1\n",
+        "\e[3;5Hline2\n",
+        "\e[4;5Hline3\n",
+        "\e[7;14H1 / 4"
+      ].join.inspect)
+    end
+
+    it "renders long content with a margin" do
+      metadata = build_metadata({margin: [1, 2, 3, 4]})
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 10)
+      slide = {content: "It is not down on any map; true places never are.",
+               metadata: build_slide_metadata({})}
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[2;5HIt is not \n",
+        "\e[3;5Hdown on any \n",
+        "\e[4;5Hmap; true \n",
+        "\e[5;5Hplaces never \n",
+        "\e[6;5Hare.\n",
+        "\e[7;14H1 / 4"
+      ].join.inspect)
+    end
+
+    it "renders content with a footer and margin" do
+      metadata = build_metadata({
+        footer: "footer",
+        margin: [1, 2, 3, 4]
+      })
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 10)
+      slide = {content: "content", metadata: build_slide_metadata({})}
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[2;5Hcontent\n",
+        "\e[7;5Hfooter",
+        "\e[7;14H1 / 4"
+      ].join.inspect)
+    end
+
     it "renders markdown list" do
       metadata = build_metadata({})
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
       content = unindent(<<-EOS)
@@ -116,7 +172,7 @@ RSpec.describe Slideck::Renderer do
 
     it "renders markdown list without colors" do
       metadata = build_metadata({})
-      converter = Slideck::Converter.new(markdown, color: false, width: 20)
+      converter = Slideck::Converter.new(markdown, color: false)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
       content = unindent(<<-EOS)
@@ -138,7 +194,6 @@ RSpec.describe Slideck::Renderer do
 
     it "renders content with footer and page number" do
       metadata = build_metadata({footer: "footer"})
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
       slide = {content: "content", metadata: build_slide_metadata({})}
@@ -151,7 +206,6 @@ RSpec.describe Slideck::Renderer do
 
     it "renders content with footer in markdown and page number" do
       metadata = build_metadata({footer: "**bold** footer"})
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
       slide = {content: "content", metadata: build_slide_metadata({})}
@@ -164,7 +218,6 @@ RSpec.describe Slideck::Renderer do
 
     it "renders content and page number with markdown" do
       metadata = build_metadata({pager: "**%<page>s of %<total>s**"})
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
       slide = {content: "content", metadata: build_slide_metadata({})}
@@ -182,7 +235,6 @@ RSpec.describe Slideck::Renderer do
           text: "footer"
         }
       })
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
       slide = {content: "content", metadata: build_slide_metadata({})}
@@ -210,7 +262,6 @@ RSpec.describe Slideck::Renderer do
             text: "%<page>d of %<total>d"
           }
         })
-        converter = Slideck::Converter.new(markdown, color: true, width: 20)
         renderer = described_class.new(converter, ansi, cursor, metadata,
                                        width: 20, height: 8)
         slide = {content: "content", metadata: build_slide_metadata({})}
@@ -230,7 +281,6 @@ RSpec.describe Slideck::Renderer do
         },
         pager: ""
       })
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
       slide = {content: "content", metadata: build_slide_metadata({})}
@@ -251,7 +301,6 @@ RSpec.describe Slideck::Renderer do
           text: "%<page>d\n%<total>d"
         }
       })
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
       slide = {content: "content", metadata: build_slide_metadata({})}
@@ -266,7 +315,7 @@ RSpec.describe Slideck::Renderer do
       ].join.inspect)
     end
 
-    it "renders content with overridden alignment, footer and pager" do
+    it "renders content with overridden alignment, footer, margin and pager" do
       metadata = build_metadata({
         align: "left",
         footer: {
@@ -280,20 +329,20 @@ RSpec.describe Slideck::Renderer do
           align: "left",
           text: "slide footer"
         },
+        margin: [1, 2, 3, 4],
         pager: {
           align: "center",
           text: "%<page>d of %<total>d"
         }
       })
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       slide = {content: "content", metadata: slide_metadata}
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
 
       expect(renderer.render(slide, 1, 4).inspect).to eq([
-        "\e[4;13Hcontent\n",
-        "\e[8;1Hslide footer",
-        "\e[8;8H1 of 4"
+        "\e[3;11Hcontent\n",
+        "\e[5;5Hslide footer",
+        "\e[5;9H1 of 4"
       ].join.inspect)
     end
 
@@ -308,7 +357,6 @@ RSpec.describe Slideck::Renderer do
         footer: "",
         pager: ""
       })
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       slide = {content: "content", metadata: slide_metadata}
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
@@ -331,7 +379,6 @@ RSpec.describe Slideck::Renderer do
           text: "%<page>d of %<total>d"
         }
       })
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       slide = {content: "content", metadata: slide_metadata}
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
@@ -347,7 +394,6 @@ RSpec.describe Slideck::Renderer do
   describe "#clear" do
     it "clears screen" do
       metadata = build_metadata({})
-      converter = Slideck::Converter.new(markdown, color: true, width: 20)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
 

@@ -67,6 +67,11 @@ module Slideck
     # @return [Hash{Symbol => Slideck::Alignment,String}]
     define_meta :footer
 
+    # The margin configuration
+    #
+    # @return [Slideck::Margin]
+    define_meta :margin
+
     # The pager configuration
     #
     # @return [Hash{Symbol => Slideck::Alignment,String}]

@@ -41,8 +41,8 @@ RSpec.describe Slideck::Runner do
         "\e[?25l\e[2J\e[1;1H",
         "\e[4;18H\n",
         "\e[5;18H\e[36;1;4mTitle\e[0m\n",
-        "\e[8;1H\e[33;1mfooter content\e[0m",
-        "\e[8;30Hpage 1 of 5",
+        "\e[7;3H\e[33;1mfooter content\e[0m",
+        "\e[7;28Hpage 1 of 5",
         "\e[2J\e[1;1H\e[?25h"
       ].join.inspect)
     end
@@ -59,8 +59,8 @@ RSpec.describe Slideck::Runner do
         "\e[?25l\e[2J\e[1;1H",
         "\e[4;18H\n",
         "\e[5;18HTitle\n",
-        "\e[8;1Hfooter content",
-        "\e[8;30Hpage 1 of 5",
+        "\e[7;3Hfooter content",
+        "\e[7;28Hpage 1 of 5",
         "\e[2J\e[1;1H\e[?25h"
       ].join.inspect)
     end

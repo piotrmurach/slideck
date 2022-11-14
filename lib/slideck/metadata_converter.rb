@@ -12,10 +12,13 @@ module Slideck
     #
     # @param [Slideck::Alignment] alignment
     #   the alignment initialiser
+    # @param [Slideck::Margin] margin
+    #   the margin initialiser
     #
     # @api public
-    def initialize(alignment)
+    def initialize(alignment, margin)
       @alignment = alignment
+      @margin = margin
     end
 
     # Convert metadata values
@@ -44,13 +47,15 @@ module Slideck
     # @param [Object] value
     #   the metadata value
     #
-    # @return [Slideck::Alignment,Hash]
+    # @return [Hash, Slideck::Alignment, Slideck::Margin]
     #
     # @api private
     def convert_for(key, value)
       case key
       when :align
         @alignment.from(value)
+      when :margin
+        @margin.from(value)
       when :footer, :pager
         convert_align_key(wrap_with_text_key(value), "bottom")
       end

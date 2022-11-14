@@ -87,10 +87,11 @@ module Slideck
     #
     # @api private
     def render_content(slide)
-      converted = convert_markdown(slide[:content])
       alignment = slide[:metadata].align || @metadata.align
+      margin = slide[:metadata].margin || @metadata.margin
+      converted = convert_markdown(slide[:content], margin)
 
-      render_section(converted.lines, alignment)
+      render_section(converted.lines, alignment, margin)
     end
 
     # Render footer
@@ -107,9 +108,10 @@ module Slideck
       return if (text = footer_metadata[:text]).empty?
 
       alignment = footer_metadata[:align] || @metadata.footer[:align]
-      converted = convert_markdown(text).chomp
+      margin = slide_margin(slide_metadata)
+      converted = convert_markdown(text, margin).chomp
 
-      render_section(converted.lines, alignment)
+      render_section(converted.lines, alignment, margin)
     end
 
     # Render pager
@@ -130,10 +132,24 @@ module Slideck
       return if (text = pager_metadata[:text]).empty?
 
       alignment = pager_metadata[:align] || @metadata.pager[:align]
+      margin = slide_margin(slide_metadata)
       formatted_text = format(text, page: current_num, total: num_of_slides)
-      converted = convert_markdown(formatted_text).chomp
+      converted = convert_markdown(formatted_text, margin).chomp
 
-      render_section(converted.lines, alignment)
+      render_section(converted.lines, alignment, margin)
+    end
+
+    # Select slide margin from metadata
+    #
+    # @param [Slideck::Metadata] slide_metadata
+    #   the slide metadata
+    #
+    # @return [Slideck::Margin]
+    #
+    # @api private
+    def slide_margin(slide_metadata)
+      slide_margin = slide_metadata && slide_metadata.margin
+      slide_margin || @metadata.margin
     end
 
     # Render section with aligned lines
@@ -142,14 +158,16 @@ module Slideck
     #   the lines to align
     # @param [Slideck::Alignment] alignment
     #   the section alignment
+    # @param [Slideck::Margin] margin
+    #   the slide margin
     #
     # @return [String]
     #
     # @api private
-    def render_section(lines, alignment)
+    def render_section(lines, alignment, margin)
       max_line = max_line_length(lines)
-      left = find_left_column(alignment.horizontal, max_line)
-      top = find_top_row(alignment.vertical, lines.size)
+      left = find_left_column(alignment.horizontal, margin, max_line)
+      top = find_top_row(alignment.vertical, margin, lines.size)
 
       lines.map.with_index do |line, i|
         cursor.move_to(left, top + i) + line
@@ -160,20 +178,22 @@ module Slideck
     #
     # @param [String] alignment
     #   the horizontal alignment
+    # @param [Slideck::Margin] margin
+    #   the slide margin
     # @param [Integer] content_length
     #   the maximum content length
     #
     # @return [Integer]
     #
     # @api private
-    def find_left_column(alignment, content_length)
+    def find_left_column(alignment, margin, content_length)
       case alignment
       when "left"
-        0
+        margin.left
       when "center"
-        (@width - content_length) / 2
+        margin.left + ((slide_width(margin) - content_length) / 2)
       when "right"
-        @width - content_length
+        margin.left + (slide_width(margin) - content_length)
       end
     end
 
@@ -181,20 +201,22 @@ module Slideck
     #
     # @param [String] alignment
     #   the vertical alignment
+    # @param [Slideck::Margin] margin
+    #   the slide margin
     # @param [Integer] num_of_lines
     #   the number of content lines
     #
     # @return [Integer]
     #
     # @api private
-    def find_top_row(alignment, num_of_lines)
+    def find_top_row(alignment, margin, num_of_lines)
       case alignment
       when "top"
-        0
+        margin.top
       when "center"
-        (@height - num_of_lines) / 2
+        margin.top + ((slide_height(margin) - num_of_lines) / 2)
       when "bottom"
-        @height - num_of_lines
+        margin.top + (slide_height(margin) - num_of_lines)
       end
     end
 
@@ -202,12 +224,14 @@ module Slideck
     #
     # @param [String] content
     #   the content to convert to terminal output
+    # @param [Slideck::Margin] margin
+    #   the slide margin
     #
     # @return [String]
     #
     # @api private
-    def convert_markdown(content)
-      @converter.convert(content)
+    def convert_markdown(content, margin)
+      @converter.convert(content, width: slide_width(margin))
     end
 
     # Find maximum line length
@@ -220,6 +244,30 @@ module Slideck
     # @api private
     def max_line_length(lines)
       lines.map { |line| @ansi.sanitize(line).size }.max
+    end
+
+    # Calculate slide height
+    #
+    # @param [Slideck::Margin] margin
+    #   the slide margin
+    #
+    # @return [Integer]
+    #
+    # @api private
+    def slide_height(margin)
+      @height - margin.top - margin.bottom
+    end
+
+    # Calculate slide width
+    #
+    # @param [Slideck::Margin] margin
+    #   the slide margin
+    #
+    # @return [Integer]
+    #
+    # @api private
+    def slide_width(margin)
+      @width - margin.left - margin.right
     end
   end # Renderer
 end # Slideck

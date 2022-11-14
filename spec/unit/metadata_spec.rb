@@ -2,8 +2,9 @@
 
 RSpec.describe Slideck::Metadata, ".from" do
   let(:alignment) { Slideck::Alignment }
-  let(:converter) { Slideck::MetadataConverter.new(alignment) }
-  let(:defaults) { Slideck::MetadataDefaults.new(alignment) }
+  let(:margin) { Slideck::Margin }
+  let(:converter) { Slideck::MetadataConverter.new(alignment, margin) }
+  let(:defaults) { Slideck::MetadataDefaults.new(alignment, margin) }
 
   it "defaults :align to left top" do
     metadata = described_class.from(converter, {}, defaults)
@@ -119,6 +120,28 @@ RSpec.describe Slideck::Metadata, ".from" do
     expect(metadata.footer?).to eq(true)
   end
 
+  it "defaults :margin to zero for all sides" do
+    metadata = described_class.from(converter, {}, defaults)
+
+    expect(metadata.margin.to_a).to eq([0, 0, 0, 0])
+  end
+
+  it "creates metadata from :margin given as an integer" do
+    config = {margin: 2}
+
+    metadata = described_class.from(converter, config, defaults)
+
+    expect(metadata.margin.to_a).to eq([2, 2, 2, 2])
+  end
+
+  it "creates metadata from :margin given as a string" do
+    config = {margin: "1, 2, 3, 4"}
+
+    metadata = described_class.from(converter, config, defaults)
+
+    expect(metadata.margin.to_a).to eq([1, 2, 3, 4])
+  end
+
   it "defaults :pager format to '%<page>d / %<total>d'" do
     metadata = described_class.from(converter, {}, defaults)
 
@@ -213,7 +236,7 @@ RSpec.describe Slideck::Metadata, ".from" do
     expect {
       described_class.from(converter, config, defaults)
     }.to raise_error(Slideck::InvalidMetadataKeyError,
-                      "unknown 'invalid' configuration key\n" \
-                      "Available keys are: :align, :footer, :pager")
+                     "unknown 'invalid' configuration key\n" \
+                     "Available keys are: :align, :footer, :margin, :pager")
   end
 end

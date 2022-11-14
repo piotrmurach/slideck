@@ -77,6 +77,7 @@ RSpec.describe Slideck::Parser, "#parse" do
     content = unindent(<<-EOS)
     align: center
     footer: footer content
+    margin: 2
     pager: "page %<page>d of %<total>d"
     EOS
     parser = described_class.new(StringScanner, metadata_parser)
@@ -87,6 +88,7 @@ RSpec.describe Slideck::Parser, "#parse" do
       metadata: {
         align: "center",
         footer: "footer content",
+        margin: 2,
         pager: "page %<page>d of %<total>d"
       },
       slides: []
@@ -97,6 +99,7 @@ RSpec.describe Slideck::Parser, "#parse" do
     content = unindent(<<-EOS)
       :align: center
       :footer: footer content
+      :margin: 2
       :pager: "page %<page>d of %<total>d"
     EOS
     parser = described_class.new(StringScanner, metadata_parser)
@@ -107,6 +110,7 @@ RSpec.describe Slideck::Parser, "#parse" do
       metadata: {
         align: "center",
         footer: "footer content",
+        margin: 2,
         pager: "page %<page>d of %<total>d"
       },
       slides: []
@@ -117,6 +121,7 @@ RSpec.describe Slideck::Parser, "#parse" do
     content = unindent(<<-EOS)
     align: center
     footer: footer content
+    margin: [1, 2]
     pager: "page %<page>d of %<total>d"
     ---
     # Slide 1
@@ -133,6 +138,7 @@ RSpec.describe Slideck::Parser, "#parse" do
       metadata: {
         align: "center",
         footer: "footer content",
+        margin: [1, 2],
         pager: "page %<page>d of %<total>d"
       },
       slides: [
@@ -148,6 +154,7 @@ RSpec.describe Slideck::Parser, "#parse" do
     ---
     align: center
     footer: footer content
+    margin: {top: 1, left: 2}
     pager: "page %<page>d of %<total>d"
     ---
     # Slide 1
@@ -165,6 +172,7 @@ RSpec.describe Slideck::Parser, "#parse" do
       metadata: {
         align: "center",
         footer: "footer content",
+        margin: {top: 1, left: 2},
         pager: "page %<page>d of %<total>d"
       },
       slides: [
@@ -181,7 +189,7 @@ RSpec.describe Slideck::Parser, "#parse" do
 
     Slide 1
 
-    --- { align: "left, top" , pager: false }
+    --- { align: "left, top" , margin: "1, 2", pager: false }
 
     Slide 2
 
@@ -201,7 +209,8 @@ RSpec.describe Slideck::Parser, "#parse" do
       metadata: {},
       slides: [
         {content: "\nSlide 1\n", metadata: {align: "center"}},
-        {content: "\nSlide 2\n", metadata: {align: "left, top", pager: false}},
+        {content: "\nSlide 2\n",
+         metadata: {align: "left, top", margin: "1, 2", pager: false}},
         {content: "\nSlide 3\n",
          metadata: {align: "right",
                     footer: {align: "left", text: "slide footer"}}},

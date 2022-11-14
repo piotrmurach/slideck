@@ -10,12 +10,15 @@ module Slideck
     # @example
     #   Slideck::MetadataDefaults.new(Slideck::Alignment)
     #
-    # @param [Alignment] alignment
+    # @param [Slideck::Alignment] alignment
     #   the alignment initialiser
+    # @param [Slideck::Margin] margin
+    #   the margin initialiser
     #
     # @api public
-    def initialize(alignment)
+    def initialize(alignment, margin)
       @alignment = alignment
+      @margin = margin
       @defaults = create_defaults
     end
 
@@ -47,6 +50,7 @@ module Slideck
       {
         align: @alignment["left", "top"],
         footer: default_footer,
+        margin: @margin[0, 0, 0, 0],
         pager: default_pager
       }.freeze
     end

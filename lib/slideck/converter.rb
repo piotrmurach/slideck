@@ -8,50 +8,34 @@ module Slideck
     # Create a Converter instance
     #
     # @example
-    #   Slideck::Converter.new(TTY::Markdown, color: false, width: 80)
+    #   Slideck::Converter.new(TTY::Markdown, color: false)
     #
     # @param [TTY::Markdown] markdown_parser
     #   the markdown parser
     # @param [Boolean] color
     #   whether to render output in color or not
-    # @param [Integer] width
-    #   the terminal width
     #
     # @api public
-    def initialize(markdown_parser, color: nil, width: nil)
+    def initialize(markdown_parser, color: nil)
       @markdown_parser = markdown_parser
-      @color = color
-      @width = width
-      @conversion_settings = create_conversion_settings
+      @color = color ? "always" : "never"
     end
 
     # Convert content into terminal output
     #
     # @example
-    #   converter.convert("#Title")
+    #   converter.convert("#Title", width: 80)
     #
     # @param [String] content
     #   the content to convert
+    # @param [Integer] width
+    #   the slide width
     #
     # @return [String]
     #
     # @api public
-    def convert(content)
-      @markdown_parser.parse(content, **@conversion_settings)
-    end
-
-    private
-
-    # The markdown conversion settings
-    #
-    # @return [Hash{Symbol => Integer,String}]
-    #
-    # @api private
-    def create_conversion_settings
-      {
-        width: @width,
-        color: @color ? "always" : "never"
-      }
+    def convert(content, width: nil)
+      @markdown_parser.parse(content, color: @color, width: width)
     end
   end # Converter
 end # Slideck
