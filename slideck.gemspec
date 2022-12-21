@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "strings-ansi", "~> 0.2.0"
   spec.add_dependency "tty-cursor", "~> 0.7.1"
-  spec.add_dependency "tty-markdown", "~> 0.7.0"
+  spec.add_dependency "tty-markdown", "~> 0.7.1"
   spec.add_dependency "tty-reader", "~> 0.9.0"
   spec.add_dependency "tty-screen", "~> 0.8.1"
 
