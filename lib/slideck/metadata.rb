@@ -77,6 +77,11 @@ module Slideck
     # @return [Hash{Symbol => Slideck::Alignment,String}]
     define_meta :pager
 
+    # The symbols configuration
+    #
+    # @return [Hash, String, Symbol]
+    define_meta :symbols
+
     # Create a Metadata instance
     #
     # @param [Hash{Symbol => Object}] metadata

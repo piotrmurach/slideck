@@ -230,6 +230,20 @@ RSpec.describe Slideck::Metadata, ".from" do
     expect(metadata.pager?).to eq(true)
   end
 
+  it "defaults :symbols to :unicode" do
+    metadata = described_class.from(converter, {}, defaults)
+
+    expect(metadata.symbols).to eq(:unicode)
+  end
+
+  it "creates metadata from :symbols with an :ascii value" do
+    config = {symbols: :ascii}
+
+    metadata = described_class.from(converter, config, defaults)
+
+    expect(metadata.symbols).to eq(:ascii)
+  end
+
   it "raises when invalid metadata key" do
     config = {invalid: ""}
 
@@ -237,6 +251,7 @@ RSpec.describe Slideck::Metadata, ".from" do
       described_class.from(converter, config, defaults)
     }.to raise_error(Slideck::InvalidMetadataKeyError,
                      "unknown 'invalid' configuration key\n" \
-                     "Available keys are: :align, :footer, :margin, :pager")
+                     "Available keys are: :align, :footer, :margin, " \
+                     ":pager, :symbols")
   end
 end

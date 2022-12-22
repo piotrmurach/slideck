@@ -28,14 +28,17 @@ module Slideck
     #
     # @param [String] content
     #   the content to convert
+    # @param [Hash, String, Symbol] symbols
+    #   the converted content symbols
     # @param [Integer] width
     #   the slide width
     #
     # @return [String]
     #
     # @api public
-    def convert(content, width: nil)
-      @markdown_parser.parse(content, color: @color, width: width)
+    def convert(content, symbols: nil, width: nil)
+      @markdown_parser.parse(
+        content, color: @color, symbols: symbols, width: width)
     end
   end # Converter
 end # Slideck

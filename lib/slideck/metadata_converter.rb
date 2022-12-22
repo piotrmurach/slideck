@@ -47,7 +47,7 @@ module Slideck
     # @param [Object] value
     #   the metadata value
     #
-    # @return [Hash, Slideck::Alignment, Slideck::Margin]
+    # @return [Hash, Slideck::Alignment, Slideck::Margin, String, Symbol]
     #
     # @api private
     def convert_for(key, value)
@@ -58,6 +58,8 @@ module Slideck
         @margin.from(value)
       when :footer, :pager
         convert_align_key(wrap_with_text_key(value), "bottom")
+      else
+        value
       end
     end
 

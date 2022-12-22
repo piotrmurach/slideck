@@ -51,7 +51,8 @@ module Slideck
         align: @alignment["left", "top"],
         footer: default_footer,
         margin: @margin[0, 0, 0, 0],
-        pager: default_pager
+        pager: default_pager,
+        symbols: :unicode
       }.freeze
     end
 

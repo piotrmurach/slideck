@@ -6,7 +6,7 @@ RSpec.describe Slideck::Converter, "#convert" do
   it "converts markdown title to terminal output" do
     converter = described_class.new(markdown_parser, color: true)
 
-    converted = converter.convert("# Title", width: 20)
+    converted = converter.convert("# Title", symbols: :unicode, width: 20)
 
     expect(converted).to eq("\e[36;1;4mTitle\e[0m\n")
   end
@@ -14,7 +14,7 @@ RSpec.describe Slideck::Converter, "#convert" do
   it "converts markdown title to terminal output without color" do
     converter = described_class.new(markdown_parser, color: false)
 
-    converted = converter.convert("# Title", width: 20)
+    converted = converter.convert("# Title", symbols: :unicode, width: 20)
 
     expect(converted).to eq("Title\n")
   end
@@ -22,7 +22,8 @@ RSpec.describe Slideck::Converter, "#convert" do
   it "converts markdown title limited by slide width" do
     converter = described_class.new(markdown_parser, color: true)
 
-    converted = converter.convert("# Very Long Title", width: 10)
+    converted = converter.convert("# Very Long Title", symbols: :unicode,
+                                                       width: 10)
 
     expect(converted).to eq([
       "\e[36;1;4mVery Long \e[0m\n",
@@ -33,11 +34,20 @@ RSpec.describe Slideck::Converter, "#convert" do
   it "converts markdown title limited by slide width and without color" do
     converter = described_class.new(markdown_parser, color: false)
 
-    converted = converter.convert("# Very Long Title", width: 10)
+    converted = converter.convert("# Very Long Title", symbols: :unicode,
+                                                       width: 10)
 
     expect(converted).to eq([
       "Very Long \n",
       "Title\n"
     ].join)
+  end
+
+  it "converts a markdown list to terminal output with ascii symbols" do
+    converter = described_class.new(markdown_parser, color: true)
+
+    converted = converter.convert("- list item", symbols: :ascii, width: 20)
+
+    expect(converted).to eq("\e[33m*\e[0m list item\n")
   end
 end

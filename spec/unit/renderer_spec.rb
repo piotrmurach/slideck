@@ -149,7 +149,7 @@ RSpec.describe Slideck::Renderer do
       ].join.inspect)
     end
 
-    it "renders markdown list" do
+    it "renders a markdown list" do
       metadata = build_metadata({})
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
@@ -170,7 +170,7 @@ RSpec.describe Slideck::Renderer do
       ].join.inspect)
     end
 
-    it "renders markdown list without colors" do
+    it "renders a markdown list without colors" do
       metadata = build_metadata({})
       converter = Slideck::Converter.new(markdown, color: false)
       renderer = described_class.new(converter, ansi, cursor, metadata,
@@ -188,6 +188,56 @@ RSpec.describe Slideck::Renderer do
         "\e[2;1H● a\n",
         "\e[3;1H● b\n",
         "\e[4;1H● c\n",
+        "\e[8;16H1 / 4"
+      ].join.inspect)
+    end
+
+    it "renders a markdown list with ascii symbols" do
+      metadata = build_metadata({
+        symbols: :ascii
+      })
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 8)
+      content = unindent(<<-EOS)
+        # List
+        - a
+        - b
+        - c
+      EOS
+      slide = {content: content, metadata: build_slide_metadata({})}
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[1;1H\e[36;1;4mList\e[0m\n",
+        "\e[2;1H\e[33m*\e[0m a\n",
+        "\e[3;1H\e[33m*\e[0m b\n",
+        "\e[4;1H\e[33m*\e[0m c\n",
+        "\e[8;16H1 / 4"
+      ].join.inspect)
+    end
+
+    it "renders a markdown list with overridden symbols" do
+      metadata = build_metadata({
+        symbols: {
+          override: {
+            bullet: "x"
+          }
+        }
+      })
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 8)
+      content = unindent(<<-EOS)
+        # List
+        - a
+        - b
+        - c
+      EOS
+      slide = {content: content, metadata: build_slide_metadata({})}
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[1;1H\e[36;1;4mList\e[0m\n",
+        "\e[2;1H\e[33mx\e[0m a\n",
+        "\e[3;1H\e[33mx\e[0m b\n",
+        "\e[4;1H\e[33mx\e[0m c\n",
         "\e[8;16H1 / 4"
       ].join.inspect)
     end
@@ -213,6 +263,23 @@ RSpec.describe Slideck::Renderer do
       expect(renderer.render(slide, 1, 4).inspect).to eq([
         "\e[1;1Hcontent\n",
         "\e[8;1H\e[33;1mbold\e[0m footer\e[8;16H1 / 4"
+      ].join.inspect)
+    end
+
+    it "renders the footer and pager content with ascii symbols" do
+      metadata = build_metadata({
+        symbols: "ascii",
+        footer: "- footer",
+        pager: "- %<page>d of %<total>d"
+      })
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 8)
+      slide = {content: "- content", metadata: build_slide_metadata({})}
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[1;1H\e[33m*\e[0m content\n",
+        "\e[8;1H\e[33m*\e[0m footer",
+        "\e[8;13H\e[33m*\e[0m 1 of 4"
       ].join.inspect)
     end
 
@@ -387,6 +454,30 @@ RSpec.describe Slideck::Renderer do
         "\e[1;1Hcontent\n",
         "\e[8;1Hslide footer",
         "\e[8;15H1 of 4"
+      ].join.inspect)
+    end
+
+    it "renders content with global metadata symbols overridden in a slide" do
+      metadata = build_metadata({
+        footer: "- footer",
+        pager: "- %<page>d of %<total>d"
+      })
+      slide_metadata = build_slide_metadata({
+        symbols: {
+          base: "ascii",
+          override: {
+            bullet: "x"
+          }
+        }
+      })
+      slide = {content: "- content", metadata: slide_metadata}
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 8)
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[1;1H\e[33mx\e[0m content\n",
+        "\e[8;1H\e[33mx\e[0m footer",
+        "\e[8;13H\e[33mx\e[0m 1 of 4"
       ].join.inspect)
     end
   end

@@ -19,7 +19,8 @@ RSpec.describe Slideck::MetadataDefaults, "#merge" do
       pager: {
         align: alignment["right", "bottom"],
         text: "%<page>d / %<total>d"
-      }
+      },
+      symbols: :unicode
     })
   end
 
@@ -33,7 +34,8 @@ RSpec.describe Slideck::MetadataDefaults, "#merge" do
       margin: margin[1, 2, 3, 4],
       pager: {
         text: "%<page>d of %<total>d"
-      }
+      },
+      symbols: :ascii
     })
 
     expect(merged).to eq({
@@ -46,7 +48,8 @@ RSpec.describe Slideck::MetadataDefaults, "#merge" do
       pager: {
         align: alignment["right", "bottom"],
         text: "%<page>d of %<total>d"
-      }
+      },
+      symbols: :ascii
     })
   end
 
@@ -61,7 +64,8 @@ RSpec.describe Slideck::MetadataDefaults, "#merge" do
       margin: margin[1, 2, 3, 4],
       pager: {
         align: alignment["right", "top"]
-      }
+      },
+      symbols: :ascii
     })
 
     expect(merged).to eq({
@@ -74,7 +78,8 @@ RSpec.describe Slideck::MetadataDefaults, "#merge" do
       pager: {
         align: alignment["right", "top"],
         text: "%<page>d / %<total>d"
-      }
+      },
+      symbols: :ascii
     })
   end
 end

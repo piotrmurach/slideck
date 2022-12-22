@@ -87,9 +87,9 @@ module Slideck
     #
     # @api private
     def render_content(slide)
-      alignment = slide[:metadata].align || @metadata.align
-      margin = slide[:metadata].margin || @metadata.margin
-      converted = convert_markdown(slide[:content], margin)
+      alignment, margin, symbols =
+        *select_metadata(slide[:metadata], :align, :margin, :symbols)
+      converted = convert_markdown(slide[:content], margin, symbols)
 
       render_section(converted.lines, alignment, margin)
     end
@@ -103,13 +103,12 @@ module Slideck
     #
     # @api private
     def render_footer(slide_metadata)
-      footer_metadata = slide_metadata && slide_metadata.footer
-      footer_metadata ||= @metadata.footer
+      footer_metadata = pick_metadata(slide_metadata, :footer)
       return if (text = footer_metadata[:text]).empty?
 
       alignment = footer_metadata[:align] || @metadata.footer[:align]
-      margin = slide_margin(slide_metadata)
-      converted = convert_markdown(text, margin).chomp
+      margin, symbols = *select_metadata(slide_metadata, :margin, :symbols)
+      converted = convert_markdown(text, margin, symbols).chomp
 
       render_section(converted.lines, alignment, margin)
     end
@@ -127,29 +126,46 @@ module Slideck
     #
     # @api private
     def render_pager(slide_metadata, current_num, num_of_slides)
-      pager_metadata = slide_metadata && slide_metadata.pager
-      pager_metadata ||= @metadata.pager
+      pager_metadata = pick_metadata(slide_metadata, :pager)
       return if (text = pager_metadata[:text]).empty?
 
       alignment = pager_metadata[:align] || @metadata.pager[:align]
-      margin = slide_margin(slide_metadata)
+      margin, symbols = *select_metadata(slide_metadata, :margin, :symbols)
       formatted_text = format(text, page: current_num, total: num_of_slides)
-      converted = convert_markdown(formatted_text, margin).chomp
+      converted = convert_markdown(formatted_text, margin, symbols).chomp
 
       render_section(converted.lines, alignment, margin)
     end
 
-    # Select slide margin from metadata
+    # Select configuration(s) by name(s) from metadata
     #
     # @param [Slideck::Metadata] slide_metadata
     #   the slide metadata
+    # @param [Array<Symbol>] names
+    #   the configuration names
     #
-    # @return [Slideck::Margin]
+    # @return [Array<Object>]
     #
     # @api private
-    def slide_margin(slide_metadata)
-      slide_margin = slide_metadata && slide_metadata.margin
-      slide_margin || @metadata.margin
+    def select_metadata(slide_metadata, *names)
+      names.each_with_object([]) do |name, selected|
+        selected << pick_metadata(slide_metadata, name)
+      end
+    end
+
+    # Pick configuration by name from metadata
+    #
+    # @param [Slideck::Metadata] slide_metadata
+    #   the slide metadata
+    # @param [Symbol] name
+    #   the configuration name
+    #
+    # @return [Hash, Slideck::Alignment, Slideck::Margin, String, Symbol]
+    #
+    # @api private
+    def pick_metadata(slide_metadata, name)
+      slide_metadata_item = slide_metadata && slide_metadata.send(name)
+      slide_metadata_item || @metadata.send(name)
     end
 
     # Render section with aligned lines
@@ -226,12 +242,14 @@ module Slideck
     #   the content to convert to terminal output
     # @param [Slideck::Margin] margin
     #   the slide margin
+    # @param [Hash, String, Symbol] symbols
+    #   the converted content symbols
     #
     # @return [String]
     #
     # @api private
-    def convert_markdown(content, margin)
-      @converter.convert(content, width: slide_width(margin))
+    def convert_markdown(content, margin, symbols)
+      @converter.convert(content, symbols: symbols, width: slide_width(margin))
     end
 
     # Find maximum line length

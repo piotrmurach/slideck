@@ -90,4 +90,16 @@ RSpec.describe Slideck::MetadataConverter, "#convert" do
       }
     })
   end
+
+  it "doesn't convert :symbols value" do
+    converter = described_class.new(alignment, margin)
+
+    converted = converter.convert({
+      symbols: {base: :ascii, override: {bullet: "x"}}
+    })
+
+    expect(converted).to eq({
+      symbols: {base: :ascii, override: {bullet: "x"}}
+    })
+  end
 end

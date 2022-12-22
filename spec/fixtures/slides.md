@@ -3,9 +3,14 @@ align: center
 footer: "**footer content**"
 margin: 1 2
 pager: "page %<page>d of %<total>d"
----
+symbols: ascii
+--- symbols: {base: ascii, override: {arrow: ">>"}}
 
-# Title
+# [Title](url)
+
+* Item 1
+* Item 2
+* Item 3
 
 --- align: left
 
