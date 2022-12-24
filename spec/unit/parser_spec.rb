@@ -2,8 +2,8 @@
 
 RSpec.describe Slideck::Parser, "#parse" do
   let(:metadata_parser) {
-    Slideck::MetadataParser.new(::YAML, permitted_classes: [Symbol],
-                                        symbolize_names: true)
+    Slideck::MetadataParser.new(YAML, permitted_classes: [Symbol],
+                                      symbolize_names: true)
   }
 
   it "parses empty content" do
@@ -80,6 +80,8 @@ RSpec.describe Slideck::Parser, "#parse" do
     margin: 2
     pager: "page %<page>d of %<total>d"
     symbols: ascii
+    theme:
+      list: green
     EOS
     parser = described_class.new(StringScanner, metadata_parser)
 
@@ -91,7 +93,8 @@ RSpec.describe Slideck::Parser, "#parse" do
         footer: "footer content",
         margin: 2,
         pager: "page %<page>d of %<total>d",
-        symbols: "ascii"
+        symbols: "ascii",
+        theme: {list: "green"}
       },
       slides: []
     })
@@ -104,6 +107,8 @@ RSpec.describe Slideck::Parser, "#parse" do
       :margin: 2
       :pager: "page %<page>d of %<total>d"
       :symbols: ascii
+      :theme:
+        list: green
     EOS
     parser = described_class.new(StringScanner, metadata_parser)
 
@@ -115,7 +120,8 @@ RSpec.describe Slideck::Parser, "#parse" do
         footer: "footer content",
         margin: 2,
         pager: "page %<page>d of %<total>d",
-        symbols: "ascii"
+        symbols: "ascii",
+        theme: {list: "green"}
       },
       slides: []
     })
@@ -128,6 +134,8 @@ RSpec.describe Slideck::Parser, "#parse" do
     margin: [1, 2]
     pager: "page %<page>d of %<total>d"
     symbols: ascii
+    theme:
+      list: green
     ---
     # Slide 1
     ---
@@ -145,7 +153,8 @@ RSpec.describe Slideck::Parser, "#parse" do
         footer: "footer content",
         margin: [1, 2],
         pager: "page %<page>d of %<total>d",
-        symbols: "ascii"
+        symbols: "ascii",
+        theme: {list: "green"}
       },
       slides: [
         {content: "# Slide 1", metadata: {}},
@@ -163,6 +172,8 @@ RSpec.describe Slideck::Parser, "#parse" do
     margin: {top: 1, left: 2}
     pager: "page %<page>d of %<total>d"
     symbols: ascii
+    theme:
+      list: green
     ---
     # Slide 1
     ---
@@ -181,7 +192,8 @@ RSpec.describe Slideck::Parser, "#parse" do
         footer: "footer content",
         margin: {top: 1, left: 2},
         pager: "page %<page>d of %<total>d",
-        symbols: "ascii"
+        symbols: "ascii",
+        theme: {list: "green"}
       },
       slides: [
         {content: "# Slide 1", metadata: {}},
@@ -209,7 +221,7 @@ RSpec.describe Slideck::Parser, "#parse" do
 
     Slide 4
 
-    ---{symbols: {override: {bullet: "x"}}}
+    ---{symbols: {override: {bullet: "x"}}, theme: {list: green}}
 
     Slide 5
     EOS
@@ -229,7 +241,8 @@ RSpec.describe Slideck::Parser, "#parse" do
         {content: "\nSlide 4\n",
          metadata: {pager: {text: "page %<page>d of %<total>d"}}},
         {content: "\nSlide 5",
-         metadata: {symbols: {override: {bullet: "x"}}}}
+         metadata: {symbols: {override: {bullet: "x"}},
+                    theme: {list: "green"}}}
       ]
     })
   end

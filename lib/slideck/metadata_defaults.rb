@@ -52,7 +52,8 @@ module Slideck
         footer: default_footer,
         margin: @margin[0, 0, 0, 0],
         pager: default_pager,
-        symbols: :unicode
+        symbols: :unicode,
+        theme: {}
       }.freeze
     end
 

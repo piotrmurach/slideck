@@ -87,9 +87,9 @@ module Slideck
     #
     # @api private
     def render_content(slide)
-      alignment, margin, symbols =
-        *select_metadata(slide[:metadata], :align, :margin, :symbols)
-      converted = convert_markdown(slide[:content], margin, symbols)
+      alignment, margin, symbols, theme =
+        *select_metadata(slide[:metadata], :align, :margin, :symbols, :theme)
+      converted = convert_markdown(slide[:content], margin, symbols, theme)
 
       render_section(converted.lines, alignment, margin)
     end
@@ -107,8 +107,9 @@ module Slideck
       return if (text = footer_metadata[:text]).empty?
 
       alignment = footer_metadata[:align] || @metadata.footer[:align]
-      margin, symbols = *select_metadata(slide_metadata, :margin, :symbols)
-      converted = convert_markdown(text, margin, symbols).chomp
+      margin, symbols, theme =
+        *select_metadata(slide_metadata, :margin, :symbols, :theme)
+      converted = convert_markdown(text, margin, symbols, theme).chomp
 
       render_section(converted.lines, alignment, margin)
     end
@@ -130,9 +131,10 @@ module Slideck
       return if (text = pager_metadata[:text]).empty?
 
       alignment = pager_metadata[:align] || @metadata.pager[:align]
-      margin, symbols = *select_metadata(slide_metadata, :margin, :symbols)
+      margin, symbols, theme =
+        *select_metadata(slide_metadata, :margin, :symbols, :theme)
       formatted_text = format(text, page: current_num, total: num_of_slides)
-      converted = convert_markdown(formatted_text, margin, symbols).chomp
+      converted = convert_markdown(formatted_text, margin, symbols, theme).chomp
 
       render_section(converted.lines, alignment, margin)
     end
@@ -244,12 +246,15 @@ module Slideck
     #   the slide margin
     # @param [Hash, String, Symbol] symbols
     #   the converted content symbols
+    # @param [Hash{Symbol => Array, String, Symbol}] theme
+    #   the converted content theme
     #
     # @return [String]
     #
     # @api private
-    def convert_markdown(content, margin, symbols)
-      @converter.convert(content, symbols: symbols, width: slide_width(margin))
+    def convert_markdown(content, margin, symbols, theme)
+      @converter.convert(
+        content, symbols: symbols, theme: theme, width: slide_width(margin))
     end
 
     # Find maximum line length

@@ -242,6 +242,33 @@ RSpec.describe Slideck::Renderer do
       ].join.inspect)
     end
 
+    it "renders a markdown list with a custom theme" do
+      metadata = build_metadata({
+        theme: {
+          header: %i[magenta underline],
+          list: :green
+        }
+      })
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 8)
+
+      content = unindent(<<-EOS)
+        # List
+        - a
+        - b
+        - c
+      EOS
+      slide = {content: content, metadata: build_slide_metadata({})}
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[1;1H\e[35;4mList\e[0m\n",
+        "\e[2;1H\e[32m●\e[0m a\n",
+        "\e[3;1H\e[32m●\e[0m b\n",
+        "\e[4;1H\e[32m●\e[0m c\n",
+        "\e[8;16H1 / 4"
+      ].join.inspect)
+    end
+
     it "renders content with footer and page number" do
       metadata = build_metadata({footer: "footer"})
       renderer = described_class.new(converter, ansi, cursor, metadata,
@@ -280,6 +307,26 @@ RSpec.describe Slideck::Renderer do
         "\e[1;1H\e[33m*\e[0m content\n",
         "\e[8;1H\e[33m*\e[0m footer",
         "\e[8;13H\e[33m*\e[0m 1 of 4"
+      ].join.inspect)
+    end
+
+    it "renders the footer and pager content with a custom theme" do
+      metadata = build_metadata({
+        footer: "**footer**",
+        pager: "*%<page>d / %<total>d*",
+        theme: {
+          em: :cyan,
+          strong: %i[magenta underline]
+        }
+      })
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 8)
+      slide = {content: "content", metadata: build_slide_metadata({})}
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[1;1Hcontent\n",
+        "\e[8;1H\e[35;4mfooter\e[0m",
+        "\e[8;16H\e[36m1 / 4\e[0m"
       ].join.inspect)
     end
 
@@ -478,6 +525,29 @@ RSpec.describe Slideck::Renderer do
         "\e[1;1H\e[33mx\e[0m content\n",
         "\e[8;1H\e[33mx\e[0m footer",
         "\e[8;13H\e[33mx\e[0m 1 of 4"
+      ].join.inspect)
+    end
+
+    it "renders content with global metadata theme overridden in a slide" do
+      metadata = build_metadata({
+        footer: "**footer**",
+        pager: "*%<page>d of %<total>d*"
+      })
+      slide_metadata = build_slide_metadata({
+        theme: {
+          header: %w[magenta underline],
+          em: "cyan",
+          strong: "green"
+        }
+      })
+      slide = {content: "# content", metadata: slide_metadata}
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 8)
+
+      expect(renderer.render(slide, 1, 4).inspect).to eq([
+        "\e[1;1H\e[35;4mcontent\e[0m\n",
+        "\e[8;1H\e[32mfooter\e[0m",
+        "\e[8;15H\e[36m1 of 4\e[0m"
       ].join.inspect)
     end
   end

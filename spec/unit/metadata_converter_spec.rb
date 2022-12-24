@@ -102,4 +102,16 @@ RSpec.describe Slideck::MetadataConverter, "#convert" do
       symbols: {base: :ascii, override: {bullet: "x"}}
     })
   end
+
+  it "doesn't convert :theme value" do
+    converter = described_class.new(alignment, margin)
+
+    converted = converter.convert({
+      theme: {list: :magenta, strong: %i[magenta bold]}
+    })
+
+    expect(converted).to eq({
+      theme: {list: :magenta, strong: %i[magenta bold]}
+    })
+  end
 end

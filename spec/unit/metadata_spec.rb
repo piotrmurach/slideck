@@ -244,6 +244,20 @@ RSpec.describe Slideck::Metadata, ".from" do
     expect(metadata.symbols).to eq(:ascii)
   end
 
+  it "defaults :theme to an empty hash" do
+    metadata = described_class.from(converter, {}, defaults)
+
+    expect(metadata.theme).to eq({})
+  end
+
+  it "creates metadata from :theme with a custom :link value" do
+    config = {theme: {link: :magenta}}
+
+    metadata = described_class.from(converter, config, defaults)
+
+    expect(metadata.theme).to eq({link: :magenta})
+  end
+
   it "raises when invalid metadata key" do
     config = {invalid: ""}
 
@@ -252,6 +266,6 @@ RSpec.describe Slideck::Metadata, ".from" do
     }.to raise_error(Slideck::InvalidMetadataKeyError,
                      "unknown 'invalid' configuration key\n" \
                      "Available keys are: :align, :footer, :margin, " \
-                     ":pager, :symbols")
+                     ":pager, :symbols, :theme")
   end
 end

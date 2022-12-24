@@ -4,6 +4,13 @@ footer: "**footer content**"
 margin: 1 2
 pager: "page %<page>d of %<total>d"
 symbols: ascii
+theme:
+  header:
+    - magenta
+    - underline
+  link: cyan
+  list: green
+  strong: blue
 --- symbols: {base: ascii, override: {arrow: ">>"}}
 
 # [Title](url)

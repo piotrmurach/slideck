@@ -82,6 +82,11 @@ module Slideck
     # @return [Hash, String, Symbol]
     define_meta :symbols
 
+    # The theme configuration
+    #
+    # @return [Hash{Symbol => Array, String, Symbol}]
+    define_meta :theme
+
     # Create a Metadata instance
     #
     # @param [Hash{Symbol => Object}] metadata

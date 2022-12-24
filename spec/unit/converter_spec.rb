@@ -6,7 +6,8 @@ RSpec.describe Slideck::Converter, "#convert" do
   it "converts markdown title to terminal output" do
     converter = described_class.new(markdown_parser, color: true)
 
-    converted = converter.convert("# Title", symbols: :unicode, width: 20)
+    converted = converter.convert("# Title", symbols: :unicode, theme: {},
+                                             width: 20)
 
     expect(converted).to eq("\e[36;1;4mTitle\e[0m\n")
   end
@@ -14,7 +15,8 @@ RSpec.describe Slideck::Converter, "#convert" do
   it "converts markdown title to terminal output without color" do
     converter = described_class.new(markdown_parser, color: false)
 
-    converted = converter.convert("# Title", symbols: :unicode, width: 20)
+    converted = converter.convert("# Title", symbols: :unicode, theme: {},
+                                             width: 20)
 
     expect(converted).to eq("Title\n")
   end
@@ -23,7 +25,7 @@ RSpec.describe Slideck::Converter, "#convert" do
     converter = described_class.new(markdown_parser, color: true)
 
     converted = converter.convert("# Very Long Title", symbols: :unicode,
-                                                       width: 10)
+                                                       theme: {}, width: 10)
 
     expect(converted).to eq([
       "\e[36;1;4mVery Long \e[0m\n",
@@ -35,7 +37,7 @@ RSpec.describe Slideck::Converter, "#convert" do
     converter = described_class.new(markdown_parser, color: false)
 
     converted = converter.convert("# Very Long Title", symbols: :unicode,
-                                                       width: 10)
+                                                       theme: {}, width: 10)
 
     expect(converted).to eq([
       "Very Long \n",
@@ -46,8 +48,19 @@ RSpec.describe Slideck::Converter, "#convert" do
   it "converts a markdown list to terminal output with ascii symbols" do
     converter = described_class.new(markdown_parser, color: true)
 
-    converted = converter.convert("- list item", symbols: :ascii, width: 20)
+    converted = converter.convert("- list item", symbols: :ascii, theme: {},
+                                                 width: 20)
 
     expect(converted).to eq("\e[33m*\e[0m list item\n")
+  end
+
+  it "converts a markdown list to terminal output with a custom theme" do
+    converter = described_class.new(markdown_parser, color: true)
+
+    converted = converter.convert("- list item", symbols: :unicode,
+                                                 theme: {list: :magenta},
+                                                 width: 20)
+
+    expect(converted).to eq("\e[35m●\e[0m list item\n")
   end
 end
