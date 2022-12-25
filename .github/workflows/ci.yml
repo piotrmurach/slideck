@@ -23,10 +23,14 @@ jobs:
         os:
           - ubuntu-latest
         ruby:
+          - "2.0"
+          - "2.1"
+          - "2.2"
           - "2.3"
           - "2.4"
           - "2.5"
           - "2.6"
+          - "2.7"
           - "3.0"
           - "3.1"
           - ruby-head
@@ -36,17 +40,7 @@ jobs:
           - jruby-head
           - truffleruby-head
         include:
-          - ruby: "2.0"
-            os: ubuntu-latest
-            coverage: false
-          - ruby: "2.1"
-            os: ubuntu-latest
-            coverage: false
-          - ruby: "2.2"
-            os: ubuntu-latest
-            coverage: false
           - ruby: "2.7"
-            os: ubuntu-latest
             coverage: true
     env:
       COVERAGE: ${{ matrix.coverage }}
