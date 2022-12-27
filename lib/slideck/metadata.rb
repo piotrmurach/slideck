@@ -99,31 +99,5 @@ module Slideck
       freeze
     end
     private_class_method :new
-
-    # Whether the footer is configured or not
-    #
-    # @example
-    #   metadata.footer?
-    #
-    # @return [Boolean]
-    #   true if footer is configured, false otherwise
-    #
-    # @api public
-    def footer?
-      !footer[:text].empty?
-    end
-
-    # Whether the pager is configured or not
-    #
-    # @example
-    #   metadata.pager?
-    #
-    # @return [Boolean]
-    #   true if pager is configured, false otherwise
-    #
-    # @api public
-    def pager?
-      !pager[:text].empty?
-    end
   end # Metadata
 end # Slideck
