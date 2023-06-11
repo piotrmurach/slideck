@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "yaml"
-
 module Slideck
   # Responsible for parsing metadata in YAML format
   #
