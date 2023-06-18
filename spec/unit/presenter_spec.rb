@@ -8,7 +8,7 @@ RSpec.describe Slideck::Presenter, "#start" do
   let(:ansi) { Strings::ANSI }
   let(:cursor) { TTY::Cursor }
   let(:markdown) { TTY::Markdown }
-  let(:converter) { Slideck::Converter.new(markdown, color: true) }
+  let(:converter) { Slideck::Converter.new(markdown, color: :always) }
   let(:alignment) { Slideck::Alignment }
   let(:margin) { Slideck::Margin }
   let(:meta_converter) { Slideck::MetadataConverter.new(alignment, margin) }

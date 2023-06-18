@@ -5,12 +5,10 @@ require "strscan"
 require "tty-cursor"
 require "tty-markdown"
 require "tty-reader"
-require "tty-screen"
 require "yaml"
 
 require_relative "alignment"
 require_relative "converter"
-require_relative "errors"
 require_relative "loader"
 require_relative "margin"
 require_relative "metadata"
@@ -27,22 +25,10 @@ module Slideck
   #
   # @api private
   class Runner
-    # Create a default Runner instance
-    #
-    # @example
-    #   Slideck::Runner.default
-    #
-    # @return [Slideck::Runner]
-    #
-    # @api public
-    def self.default
-      new(TTY::Screen, $stdin, $stdout, {}, color: true)
-    end
-
     # Create a Runner instance
     #
     # @example
-    #   Slideck::Runner.new(TTY::Screen, $stdin, $stdout, false, {})
+    #   Slideck::Runner.new(TTY::Screen, $stdin, $stdout, {})
     #
     # @param [TTY::Screen] screen
     #   the terminal screen size
@@ -52,35 +38,34 @@ module Slideck
     #   the output stream
     # @param [Hash] env
     #   the environment variables
-    # @param [Boolean] color
-    #   whether or not to enable colored output
     #
     # @api public
-    def initialize(screen, input, output, env, color: nil)
+    def initialize(screen, input, output, env)
       @screen = screen
       @input = input
       @output = output
       @env = env
-      @color = color
     end
 
     # Run the slides in a terminal
     #
     # @example
-    #   runner.run("slides.md")
+    #   runner.run("slides.md", color: :always)
     #
     # @param [String] filename
     #   the filename with slides
+    # @param [String, Symbol] color
+    #   the color display out of always, auto or never
     #
     # @return [void]
     #
     # @api public
-    def run(filename)
+    def run(filename, color: nil)
       metadata, slides = parse_slides(load_slides(filename))
 
       reader = TTY::Reader.new(input: @input, output: @output, env: @env,
                                interrupt: :exit)
-      converter = Converter.new(TTY::Markdown, color: @color)
+      converter = Converter.new(TTY::Markdown, color: color)
       renderer = Renderer.new(converter, Strings::ANSI, TTY::Cursor, metadata,
                               width: @screen.width, height: @screen.height)
       tracker = Tracker.for(slides.size)

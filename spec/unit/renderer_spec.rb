@@ -4,7 +4,7 @@ RSpec.describe Slideck::Renderer do
   let(:ansi) { Strings::ANSI }
   let(:cursor) { TTY::Cursor }
   let(:markdown) { TTY::Markdown }
-  let(:converter) { Slideck::Converter.new(markdown, color: true) }
+  let(:converter) { Slideck::Converter.new(markdown, color: :always) }
   let(:alignment) { Slideck::Alignment }
   let(:margin) { Slideck::Margin }
   let(:meta_defaults) { Slideck::MetadataDefaults.new(alignment, margin) }
@@ -172,7 +172,7 @@ RSpec.describe Slideck::Renderer do
 
     it "renders a markdown list without colors" do
       metadata = build_metadata({})
-      converter = Slideck::Converter.new(markdown, color: false)
+      converter = Slideck::Converter.new(markdown, color: :never)
       renderer = described_class.new(converter, ansi, cursor, metadata,
                                      width: 20, height: 8)
       content = unindent(<<-EOS)

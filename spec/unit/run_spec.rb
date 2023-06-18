@@ -2,13 +2,14 @@
 
 RSpec.describe Slideck, ".run" do
   it "runs the runner" do
-    runner = instance_double(Slideck::Runner)
-    allow(runner).to receive(:run).with("slides.md")
-    allow(Slideck::Runner).to receive(:default).and_return(runner)
+    cli = instance_spy(Slideck::CLI)
+    allow(Slideck::CLI).to receive(:new).and_return(cli)
 
-    described_class.run("slides.md")
+    described_class.run(%w[slides.md], {"NO_COLOR" => true})
 
-    expect(Slideck::Runner).to have_received(:default)
-    expect(runner).to have_received(:run).with("slides.md")
+    expect(Slideck::CLI).to have_received(:new)
+      .with(instance_of(Slideck::Runner), $stdout, $stderr)
+    expect(cli).to have_received(:start)
+      .with(%w[slides.md], {"NO_COLOR" => true})
   end
 end
