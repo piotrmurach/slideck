@@ -108,4 +108,46 @@ RSpec.describe Slideck::Tracker do
       expect(tracker.current).to eq(2)
     end
   end
+
+  describe "#resize" do
+    it "doesn't resize when the total is the same" do
+      tracker = described_class.new(4, 5)
+
+      tracker = tracker.resize(5)
+
+      expect(tracker).to have_attributes(current: 4, total: 5)
+    end
+
+    it "doesn't resize when the total is less than zero" do
+      tracker = described_class.new(4, 5)
+
+      tracker = tracker.resize(-1)
+
+      expect(tracker).to have_attributes(current: 4, total: 5)
+    end
+
+    it "resizes to a new total equal to zero" do
+      tracker = described_class.new(4, 5)
+
+      tracker = tracker.resize(0)
+
+      expect(tracker).to have_attributes(current: 0, total: 0)
+    end
+
+    it "resizes to a new total greater than the current total" do
+      tracker = described_class.new(4, 5)
+
+      tracker = tracker.resize(6)
+
+      expect(tracker).to have_attributes(current: 4, total: 6)
+    end
+
+    it "resizes to a new total less than the current total" do
+      tracker = described_class.new(4, 5)
+
+      tracker = tracker.resize(4)
+
+      expect(tracker).to have_attributes(current: 3, total: 4)
+    end
+  end
 end

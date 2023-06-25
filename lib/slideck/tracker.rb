@@ -126,5 +126,42 @@ module Slideck
 
       self.class.new(slide_no, total)
     end
+
+    # Resize to the new total
+    #
+    # @example
+    #   tracker = tracker.resize(10)
+    #
+    # @param [Integer] new_total
+    #   the new total
+    #
+    # @return [Slideck::Tracker]
+    #
+    # @api public
+    def resize(new_total)
+      return self if new_total < 0 || total == new_total
+
+      self.class.new(reset_current(new_total), new_total)
+    end
+
+    private
+
+    # Reset current
+    #
+    # @param [Integer] new_total
+    #   the new total
+    #
+    # @return [Integer]
+    #
+    # @api private
+    def reset_current(new_total)
+      if current < new_total
+        current
+      elsif new_total.zero?
+        0
+      else
+        new_total - 1
+      end
+    end
   end # Tracker
 end # Slideck

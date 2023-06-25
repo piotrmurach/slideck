@@ -7,6 +7,8 @@ module Slideck
   class Presenter
     # Create a Presenter
     #
+    # @param [Array<Hash>] slides
+    #   the slides to present
     # @param [TTY::Reader] reader
     #   the keyboard input reader
     # @param [Slideck::Renderer] renderer
@@ -17,7 +19,8 @@ module Slideck
     #   the output stream for the slides
     #
     # @api public
-    def initialize(reader, renderer, tracker, output)
+    def initialize(slides, reader, renderer, tracker, output)
+      @slides = slides
       @reader = reader
       @renderer = renderer
       @tracker = tracker
@@ -26,41 +29,67 @@ module Slideck
       @buffer = []
     end
 
+    # Reload presentation
+    #
+    # @example
+    #   renderer.reload(metadata, slides)
+    #
+    # @param [Slideck::Metadata] metadata
+    #   the slides metadata
+    # @param [Array<Hash>] slides
+    #   the slides to present
+    #
+    # @return [Slideck::Presenter]
+    #
+    # @api public
+    def reload(metadata, slides)
+      @slides = slides
+      @renderer = @renderer.with_metadata(metadata)
+      @tracker = @tracker.resize(slides.size)
+      self
+    end
+
     # Start presentation
     #
     # @example
-    #   presenter.start(slides)
-    #
-    # @param [Array<String>] slides
-    #   the slides to present
+    #   presenter.start
     #
     # @return [void]
     #
     # @api public
-    def start(slides)
+    def start
       @reader.subscribe(self)
-      @output.print @renderer.cursor.hide
+      hide_cursor
 
       until @stop
-        clear_screen
-        render_slide(slides[@tracker.current])
+        render
         @reader.read_keypress
       end
     ensure
-      @output.print @renderer.cursor.show
+      show_cursor
     end
 
-    # Render current slide
+    # Stop presentation
     #
-    # @param [String] slide
-    #   the slide to render
+    # @example
+    #   presenter.stop
+    #
+    # @return [Slideck::Presenter]
+    #
+    # @api public
+    def stop
+      @stop = true
+      self
+    end
+
+    # Render presentation on cleared screen
     #
     # @return [void]
     #
     # @api private
-    def render_slide(slide)
-      @output.print @renderer.render(slide, @tracker.current + 1,
-                                     @tracker.total)
+    def render
+      clear_screen
+      render_slide
     end
 
     # Clear terminal screen
@@ -70,6 +99,34 @@ module Slideck
     # @api private
     def clear_screen
       @output.print @renderer.clear
+    end
+
+    # Render the current slide
+    #
+    # @return [void]
+    #
+    # @api private
+    def render_slide
+      @output.print @renderer.render(
+        @slides[@tracker.current], @tracker.current + 1, @tracker.total)
+    end
+
+    # Hide cursor
+    #
+    # @return [void]
+    #
+    # @api private
+    def hide_cursor
+      @output.print @renderer.cursor.hide
+    end
+
+    # Show cursor
+    #
+    # @return [void]
+    #
+    # @api private
+    def show_cursor
+      @output.print @renderer.cursor.show
     end
 
     # Handle a keypress event
@@ -121,7 +178,7 @@ module Slideck
     # @api private
     def keyctrl_x(*)
       clear_screen
-      @stop = true
+      stop
     end
     alias keyescape keyctrl_x
 

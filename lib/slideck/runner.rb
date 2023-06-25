@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "listen"
 require "strings-ansi"
 require "strscan"
 require "tty-cursor"
@@ -50,31 +51,44 @@ module Slideck
     # Run the slides in a terminal
     #
     # @example
-    #   runner.run("slides.md", color: :always)
+    #   runner.run("slides.md", color: :always, watch: true)
     #
     # @param [String] filename
     #   the filename with slides
     # @param [String, Symbol] color
     #   the color display out of always, auto or never
+    # @param [Boolean] watch
+    #   whether to watch for changes in a filename
     #
     # @return [void]
     #
     # @api public
-    def run(filename, color: nil)
-      metadata, slides = parse_slides(load_slides(filename))
+    def run(filename, color: nil, watch: nil)
+      presenter = build_presenter(*read_slides(filename), color)
 
-      reader = TTY::Reader.new(input: @input, output: @output, env: @env,
-                               interrupt: :exit)
-      converter = Converter.new(TTY::Markdown, color: color)
-      renderer = Renderer.new(converter, Strings::ANSI, TTY::Cursor, metadata,
-                              width: @screen.width, height: @screen.height)
-      tracker = Tracker.for(slides.size)
-      presenter = Presenter.new(reader, renderer, tracker, @output)
+      if watch
+        listener = build_listener(presenter, filename)
+        listener.start
+      end
 
-      presenter.start(slides)
+      presenter.start
+    ensure
+      listener && listener.stop
     end
 
     private
+
+    # Read slides
+    #
+    # @param [String] filename
+    #   the filename to read slides from
+    #
+    # @return [Array<Slideck::Metadata, Array<Hash>>]
+    #
+    # @api private
+    def read_slides(filename)
+      parse_slides(load_slides(filename))
+    end
 
     # Load slides
     #
@@ -94,7 +108,7 @@ module Slideck
     # @param [String] content
     #   the content with metadata and slides
     #
-    # @return [Array<Slideck::Metadata, Hash>]
+    # @return [Array<Slideck::Metadata, Array<Hash>>]
     #
     # @api private
     def parse_slides(content)
@@ -137,6 +151,48 @@ module Slideck
       metadata_converter = MetadataConverter.new(Alignment, Margin)
 
       Metadata.from(metadata_converter, custom_metadata, metadata_defaults)
+    end
+
+    # Build presenter
+    #
+    # @param [Slideck::Metadata] metadata
+    #   the configuration metadata
+    # @param [Array<Hash>] slides
+    #   the slides to present
+    # @param [String, Symbol] color
+    #   the color display out of always, auto or never
+    #
+    # @return [Slideck::Presenter]
+    #
+    # @api private
+    def build_presenter(metadata, slides, color)
+      reader = TTY::Reader.new(input: @input, output: @output, env: @env,
+                               interrupt: :exit)
+      converter = Converter.new(TTY::Markdown, color: color)
+      renderer = Renderer.new(converter, Strings::ANSI, TTY::Cursor, metadata,
+                              width: @screen.width, height: @screen.height)
+      tracker = Tracker.for(slides.size)
+      Presenter.new(slides, reader, renderer, tracker, @output)
+    end
+
+    # Build a listener for changes in a filename
+    #
+    # @param [Slideck::Presenter] presenter
+    #   the presenter for slides
+    # @param [String] filename
+    #   the filename with slides
+    #
+    # @return [Listen::Listener]
+    #
+    # @api private
+    def build_listener(presenter, filename)
+      watched_dir = File.expand_path(File.dirname(filename))
+      watched_file = File.expand_path(filename)
+      Listen.to(watched_dir) do |changed_files, _, _|
+        if changed_files.include?(watched_file)
+          presenter.reload(*read_slides(filename)).render
+        end
+      end
     end
   end # Runner
 end # Slideck

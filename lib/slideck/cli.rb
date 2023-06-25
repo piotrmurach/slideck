@@ -58,6 +58,12 @@ module Slideck
       desc "Print version"
     end
 
+    flag :watch do
+      short "-w"
+      long "--watch"
+      desc "Watch for changes in the file with slides"
+    end
+
     # The pattern to detect color option
     #
     # @return [Regexp]
@@ -114,7 +120,9 @@ module Slideck
       print_version || print_help || print_errors
 
       rescue_errors do
-        @runner.run(params[:file], color: color(no_color_env?(cmd_args, env)))
+        @runner.run(params[:file],
+                    color: color(no_color_env?(cmd_args, env)),
+                    watch: params[:watch])
       end
     end
 

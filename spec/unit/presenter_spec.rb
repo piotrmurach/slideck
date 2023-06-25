@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Slideck::Presenter, "#start" do
+RSpec.describe Slideck::Presenter do
   let(:output) { StringIO.new("".dup, "w+") }
   let(:input) { StringIO.new("".dup, "w+") }
   let(:env) { {"TTY_TEST" => true} }
@@ -16,161 +16,188 @@ RSpec.describe Slideck::Presenter, "#start" do
   let(:metadata) { Slideck::Metadata.from(meta_converter, {}, meta_defaults) }
   let(:slide_metadata) { Slideck::Metadata.from(meta_converter, {}, {}) }
 
-  it "quits slides immediately with 'q' key" do
-    slides = [{content: "slide1", metadata: slide_metadata},
-              {content: "slide2", metadata: slide_metadata},
-              {content: "slide3", metadata: slide_metadata}]
-    tracker = Slideck::Tracker.for(slides.size)
-    renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
-                                     width: 20, height: 8)
-    presenter = described_class.new(reader, renderer, tracker, output)
-    input << "q"
-    input.rewind
-
-    presenter.start(slides)
-
-    expect(output.string.inspect).to eq([
-      "\e[?25l\e[2J\e[1;1H",
-      "\e[1;1Hslide1\n",
-      "\e[8;16H1 / 3",
-      "\e[2J\e[1;1H\e[?25h"
-    ].join.inspect)
+  def build_metadata(custom_metadata)
+    Slideck::Metadata.from(meta_converter, custom_metadata, meta_defaults)
   end
 
-  it "navigates slides with letter keys and quits with Ctrl+X" do
-    slides = [{content: "slide1", metadata: slide_metadata},
-              {content: "slide2", metadata: slide_metadata},
-              {content: "slide3", metadata: slide_metadata}]
-    tracker = Slideck::Tracker.for(slides.size)
-    renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
-                                     width: 20, height: 8)
-    presenter = described_class.new(reader, renderer, tracker, output)
-    input << "n" << "l" << "p" << "h" << ?\C-x
-    input.rewind
+  describe "#reload" do
+    it "reloads the presentation with new metadata and slides" do
+      slides = Array.new(5) do |i|
+        {content: "slide#{i + 1}", metadata: slide_metadata}
+      end
+      tracker = Slideck::Tracker.for(slides.size)
+      renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
+                                       width: 20, height: 8)
+      presenter = described_class.new(slides, reader, renderer, tracker, output)
+      reloaded_metadata = build_metadata({theme: {strong: :cyan}})
+      reloaded_slides = [{content: "**Reloaded**", metadata: slide_metadata}]
 
-    presenter.start(slides)
+      presenter.reload(reloaded_metadata, reloaded_slides).render
 
-    expect(output.string.inspect).to eq([
-      "\e[?25l\e[2J\e[1;1H",
-      "\e[1;1Hslide1\n",
-      "\e[8;16H1 / 3",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide2\n",
-      "\e[8;16H2 / 3",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide3\n",
-      "\e[8;16H3 / 3",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide2\n",
-      "\e[8;16H2 / 3",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide1\n",
-      "\e[8;16H1 / 3",
-      "\e[2J\e[1;1H\e[?25h"
-    ].join.inspect)
-  end
-
-  it "navigates slides with arrow, page up/down, space and backspace keys" do
-    slides = [{content: "slide1", metadata: slide_metadata},
-              {content: "slide2", metadata: slide_metadata},
-              {content: "slide3", metadata: slide_metadata}]
-    tracker = Slideck::Tracker.for(slides.size)
-    renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
-                                     width: 20, height: 8)
-    presenter = described_class.new(reader, renderer, tracker, output)
-    reader.on(:keypress) do |event|
-      reader.trigger(:keyleft) if event.value == "a"
-      reader.trigger(:keyright) if event.value == "d"
-      reader.trigger(:keypage_up) if event.value == "w"
-      reader.trigger(:keypage_down) if event.value == "s"
-      reader.trigger(:keybackspace) if event.value == "b"
+      expect(output.string.inspect).to eq([
+        "\e[2J\e[1;1H",
+        "\e[1;1H\e[36mReloaded\e[0m\n",
+        "\e[8;16H1 / 1"
+      ].join.inspect)
     end
-    input << "d" << " " << "a" << "b" << "s" << "w" << "q"
-    input.rewind
-
-    presenter.start(slides)
-
-    expect(output.string.inspect).to eq([
-      "\e[?25l\e[2J\e[1;1H",
-      "\e[1;1Hslide1\n",
-      "\e[8;16H1 / 3",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide2\n",
-      "\e[8;16H2 / 3",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide3\n",
-      "\e[8;16H3 / 3",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide2\n",
-      "\e[8;16H2 / 3",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide1\n",
-      "\e[8;16H1 / 3",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide2\n",
-      "\e[8;16H2 / 3",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide1\n",
-      "\e[8;16H1 / 3",
-      "\e[2J\e[1;1H\e[?25h"
-    ].join.inspect)
   end
 
-  it "navigates straight to the last and first slide and quits with Esc" do
-    slides = [{content: "slide1", metadata: slide_metadata},
-              {content: "slide2", metadata: slide_metadata},
-              {content: "slide3", metadata: slide_metadata}]
-    tracker = Slideck::Tracker.for(slides.size)
-    renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
-                                     width: 20, height: 8)
-    presenter = described_class.new(reader, renderer, tracker, output)
-    input << "$" << "^" << "\e"
-    input.rewind
+  describe "#start" do
+    it "quits slides immediately with 'q' key" do
+      slides = [{content: "slide1", metadata: slide_metadata},
+                {content: "slide2", metadata: slide_metadata},
+                {content: "slide3", metadata: slide_metadata}]
+      tracker = Slideck::Tracker.for(slides.size)
+      renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
+                                       width: 20, height: 8)
+      presenter = described_class.new(slides, reader, renderer, tracker, output)
+      input << "q"
+      input.rewind
 
-    presenter.start(slides)
+      presenter.start
 
-    expect(output.string.inspect).to eq([
-      "\e[?25l\e[2J\e[1;1H",
-      "\e[1;1Hslide1\n",
-      "\e[8;16H1 / 3",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide3\n",
-      "\e[8;16H3 / 3",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide1\n",
-      "\e[8;16H1 / 3",
-      "\e[2J\e[1;1H\e[?25h"
-    ].join.inspect)
-  end
-
-  it "navigates to a specific slide and exits with Ctrl+C" do
-    slides = Array.new(15) do |i|
-      {content: "slide#{i + 1}", metadata: slide_metadata}
+      expect(output.string.inspect).to eq([
+        "\e[?25l\e[2J\e[1;1H",
+        "\e[1;1Hslide1\n",
+        "\e[8;16H1 / 3",
+        "\e[2J\e[1;1H\e[?25h"
+      ].join.inspect)
     end
-    tracker = Slideck::Tracker.for(slides.size)
-    renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
-                                     width: 20, height: 8)
 
-    presenter = described_class.new(reader, renderer, tracker, output)
-    input << "1" << "3" << "g" << "q" << ?\C-c
-    input.rewind
+    it "navigates slides with letter keys and quits with Ctrl+X" do
+      slides = [{content: "slide1", metadata: slide_metadata},
+                {content: "slide2", metadata: slide_metadata},
+                {content: "slide3", metadata: slide_metadata}]
+      tracker = Slideck::Tracker.for(slides.size)
+      renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
+                                       width: 20, height: 8)
+      presenter = described_class.new(slides, reader, renderer, tracker, output)
+      input << "n" << "l" << "p" << "h" << ?\C-x
+      input.rewind
 
-    presenter.start(slides)
+      presenter.start
 
-    expect(output.string.inspect).to eq([
-      "\e[?25l\e[2J\e[1;1H",
-      "\e[1;1Hslide1\n",
-      "\e[8;15H1 / 15",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide1\n",
-      "\e[8;15H1 / 15",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide1\n",
-      "\e[8;15H1 / 15",
-      "\e[2J\e[1;1H",
-      "\e[1;1Hslide13\n",
-      "\e[8;14H13 / 15",
-      "\e[2J\e[1;1H\e[?25h"
-    ].join.inspect)
+      expect(output.string.inspect).to eq([
+        "\e[?25l\e[2J\e[1;1H",
+        "\e[1;1Hslide1\n",
+        "\e[8;16H1 / 3",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide2\n",
+        "\e[8;16H2 / 3",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide3\n",
+        "\e[8;16H3 / 3",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide2\n",
+        "\e[8;16H2 / 3",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide1\n",
+        "\e[8;16H1 / 3",
+        "\e[2J\e[1;1H\e[?25h"
+      ].join.inspect)
+    end
+
+    it "navigates slides with arrow, page up/down, space and backspace keys" do
+      slides = [{content: "slide1", metadata: slide_metadata},
+                {content: "slide2", metadata: slide_metadata},
+                {content: "slide3", metadata: slide_metadata}]
+      tracker = Slideck::Tracker.for(slides.size)
+      renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
+                                       width: 20, height: 8)
+      presenter = described_class.new(slides, reader, renderer, tracker, output)
+      reader.on(:keypress) do |event|
+        reader.trigger(:keyleft) if event.value == "a"
+        reader.trigger(:keyright) if event.value == "d"
+        reader.trigger(:keypage_up) if event.value == "w"
+        reader.trigger(:keypage_down) if event.value == "s"
+        reader.trigger(:keybackspace) if event.value == "b"
+      end
+      input << "d" << " " << "a" << "b" << "s" << "w" << "q"
+      input.rewind
+
+      presenter.start
+
+      expect(output.string.inspect).to eq([
+        "\e[?25l\e[2J\e[1;1H",
+        "\e[1;1Hslide1\n",
+        "\e[8;16H1 / 3",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide2\n",
+        "\e[8;16H2 / 3",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide3\n",
+        "\e[8;16H3 / 3",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide2\n",
+        "\e[8;16H2 / 3",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide1\n",
+        "\e[8;16H1 / 3",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide2\n",
+        "\e[8;16H2 / 3",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide1\n",
+        "\e[8;16H1 / 3",
+        "\e[2J\e[1;1H\e[?25h"
+      ].join.inspect)
+    end
+
+    it "navigates straight to the last and first slide and quits with Esc" do
+      slides = [{content: "slide1", metadata: slide_metadata},
+                {content: "slide2", metadata: slide_metadata},
+                {content: "slide3", metadata: slide_metadata}]
+      tracker = Slideck::Tracker.for(slides.size)
+      renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
+                                       width: 20, height: 8)
+      presenter = described_class.new(slides, reader, renderer, tracker, output)
+      input << "$" << "^" << "\e"
+      input.rewind
+
+      presenter.start
+
+      expect(output.string.inspect).to eq([
+        "\e[?25l\e[2J\e[1;1H",
+        "\e[1;1Hslide1\n",
+        "\e[8;16H1 / 3",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide3\n",
+        "\e[8;16H3 / 3",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide1\n",
+        "\e[8;16H1 / 3",
+        "\e[2J\e[1;1H\e[?25h"
+      ].join.inspect)
+    end
+
+    it "navigates to a specific slide and exits with Ctrl+C" do
+      slides = Array.new(15) do |i|
+        {content: "slide#{i + 1}", metadata: slide_metadata}
+      end
+      tracker = Slideck::Tracker.for(slides.size)
+      renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
+                                       width: 20, height: 8)
+      presenter = described_class.new(slides, reader, renderer, tracker, output)
+      input << "1" << "3" << "g" << "q" << ?\C-c
+      input.rewind
+
+      presenter.start
+
+      expect(output.string.inspect).to eq([
+        "\e[?25l\e[2J\e[1;1H",
+        "\e[1;1Hslide1\n",
+        "\e[8;15H1 / 15",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide1\n",
+        "\e[8;15H1 / 15",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide1\n",
+        "\e[8;15H1 / 15",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide13\n",
+        "\e[8;14H13 / 15",
+        "\e[2J\e[1;1H\e[?25h"
+      ].join.inspect)
+    end
   end
 end

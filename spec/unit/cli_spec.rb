@@ -120,6 +120,7 @@ RSpec.describe Slideck::CLI, "#start" do
         -h, --help        Print usage
             --no-color    Do not color output. Identical to --color=never
         -v, --version     Print version
+        -w, --watch       Watch for changes in the file with slides
 
       Examples:
         Start presentation
@@ -145,6 +146,16 @@ RSpec.describe Slideck::CLI, "#start" do
     }.to raise_error(SystemExit) { |err| expect(err.status).to eq(0) }
 
     expect(output.string).to eq("#{Slideck::VERSION}\n")
+  end
+
+  it "watches for changes in a slides file and quits" do
+    cli = described_class.new(runner, output, error_output)
+    input << "q"
+    input.rewind
+
+    cli.start([fixtures_path("slides.md"), "--watch", "--no-color"], {})
+
+    expect(output.string.inspect).to match(/\\e\[9;14HTitle >>/)
   end
 
   it "prints an error when given a slides file and an unknown option" do

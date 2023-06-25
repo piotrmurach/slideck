@@ -18,6 +18,23 @@ RSpec.describe Slideck::Renderer do
     Slideck::Metadata.from(meta_converter, custom_metadata, {})
   end
 
+  describe "#with_metadata" do
+    it "creates an instance with new metadata" do
+      metadata = build_metadata({pager: ""})
+      renderer = described_class.new(converter, ansi, cursor, metadata,
+                                     width: 20, height: 8)
+      new_metadata = build_metadata({footer: "footer"})
+      slide = {content: "content", metadata: build_slide_metadata({})}
+
+      new_renderer = renderer.with_metadata(new_metadata)
+
+      expect(new_renderer.render(slide, 1, 1).inspect).to eq([
+        "\e[1;1Hcontent\n",
+        "\e[8;1Hfooter\e[8;16H1 / 1"
+      ].join.inspect)
+    end
+  end
+
   describe "#render" do
     it "renders page number without slide content" do
       metadata = build_metadata({})

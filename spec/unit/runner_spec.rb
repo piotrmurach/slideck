@@ -63,4 +63,67 @@ RSpec.describe Slideck::Runner, "#run" do
       "\e[2J\e[1;1H\e[?25h"
     ].join.inspect)
   end
+
+  it "reloads slides from watched file and quits" do
+    screen = class_double(TTY::Screen, width: 40, height: 10)
+    listener = instance_spy(Listen::Listener)
+    slides_file = fixtures_path("empty.md")
+    allow(Listen).to receive(:to).and_yield([slides_file], [], [])
+                                 .and_return(listener)
+    runner = described_class.new(screen, input, output, env)
+    input << "q"
+    input.rewind
+
+    runner.run(slides_file, color: :always, watch: true)
+
+    expect(output.string.inspect).to eq([
+      "\e[2J\e[1;1H",
+      "\e[10;36H1 / 0",
+      "\e[?25l\e[2J\e[1;1H",
+      "\e[10;36H1 / 0",
+      "\e[2J\e[1;1H\e[?25h"
+    ].join.inspect)
+  end
+
+  it "doesn't reload slides from an unchanged file and quits" do
+    screen = class_double(TTY::Screen, width: 40, height: 10)
+    listener = instance_spy(Listen::Listener)
+    allow(Listen).to receive(:to).and_yield([], [], []).and_return(listener)
+    runner = described_class.new(screen, input, output, env)
+    input << "q"
+    input.rewind
+
+    runner.run(fixtures_path("empty.md"), color: :always, watch: true)
+
+    expect(output.string.inspect).to eq([
+      "\e[?25l\e[2J\e[1;1H",
+      "\e[10;36H1 / 0",
+      "\e[2J\e[1;1H\e[?25h"
+    ].join.inspect)
+  end
+
+  it "stops the listener before quitting" do
+    screen = class_double(TTY::Screen, width: 40, height: 10)
+    listener = instance_spy(Listen::Listener)
+    allow(Listen).to receive(:to).and_return(listener)
+    runner = described_class.new(screen, input, output, env)
+    input << "q"
+    input.rewind
+
+    runner.run(fixtures_path("slides.md"), color: :always, watch: true)
+
+    expect(listener).to have_received(:stop)
+  end
+
+  it "doesn't watch for changes in file with slides" do
+    screen = class_double(TTY::Screen, width: 40, height: 10)
+    allow(Listen).to receive(:to)
+    runner = described_class.new(screen, input, output, env)
+    input << "q"
+    input.rewind
+
+    runner.run(fixtures_path("slides.md"), color: :always, watch: false)
+
+    expect(Listen).not_to have_received(:to)
+  end
 end

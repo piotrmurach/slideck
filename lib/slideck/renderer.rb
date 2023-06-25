@@ -38,6 +38,24 @@ module Slideck
       @metadata = metadata
       @width = width
       @height = height
+
+      freeze
+    end
+
+    # Create a Renderer with new metadata
+    #
+    # @example
+    #   renderer.with_metadata(metadata)
+    #
+    # @param [Slideck::Metadata] metadata
+    #   the configuration metadata
+    #
+    # @return [Slideck::Renderer]
+    #
+    # @api public
+    def with_metadata(metadata)
+      self.class.new(@converter, @ansi, @cursor, metadata,
+                     width: @width, height: @height)
     end
 
     # Render a slide
