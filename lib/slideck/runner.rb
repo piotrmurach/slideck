@@ -64,10 +64,10 @@ module Slideck
     #
     # @api public
     def run(filename, color: nil, watch: nil)
-      presenter = build_presenter(*read_slides(filename), color)
+      presenter = build_presenter(color) { read_slides(filename) }
 
       if watch
-        listener = build_listener(presenter, filename)
+        listener = build_listener(filename) { presenter.reload.render }
         listener.start
       end
 
@@ -155,43 +155,37 @@ module Slideck
 
     # Build presenter
     #
-    # @param [Slideck::Metadata] metadata
-    #   the configuration metadata
-    # @param [Array<Hash>] slides
-    #   the slides to present
     # @param [String, Symbol] color
     #   the color display out of always, auto or never
+    # @param [Proc] reloader
+    #   the metadata and slides reloader
     #
     # @return [Slideck::Presenter]
     #
     # @api private
-    def build_presenter(metadata, slides, color)
+    def build_presenter(color, &reloader)
       reader = TTY::Reader.new(input: @input, output: @output, env: @env,
                                interrupt: :exit)
       converter = Converter.new(TTY::Markdown, color: color)
-      renderer = Renderer.new(converter, Strings::ANSI, TTY::Cursor, metadata,
+      renderer = Renderer.new(converter, Strings::ANSI, TTY::Cursor,
                               width: @screen.width, height: @screen.height)
-      tracker = Tracker.for(slides.size)
-      Presenter.new(slides, reader, renderer, tracker, @output)
+      tracker = Tracker.for(0)
+      Presenter.new(reader, renderer, tracker, @output, &reloader)
     end
 
     # Build a listener for changes in a filename
     #
-    # @param [Slideck::Presenter] presenter
-    #   the presenter for slides
     # @param [String] filename
     #   the filename with slides
     #
     # @return [Listen::Listener]
     #
     # @api private
-    def build_listener(presenter, filename)
+    def build_listener(filename)
       watched_dir = File.expand_path(File.dirname(filename))
       watched_file = File.expand_path(filename)
       Listen.to(watched_dir) do |changed_files, _, _|
-        if changed_files.include?(watched_file)
-          presenter.reload(*read_slides(filename)).render
-        end
+        yield if changed_files.include?(watched_file)
       end
     end
   end # Runner

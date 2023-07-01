@@ -23,47 +23,30 @@ module Slideck
     #   the ansi codes handler
     # @param [TTY::Cursor] cursor
     #   the cursor navigation
-    # @param [Slideck::Metadata] metadata
-    #   the configuration metadata
     # @param [Integer] width
     #   the screen width
     # @param [Integer] height
     #   the screen height
     #
     # @api public
-    def initialize(converter, ansi, cursor, metadata, width: nil, height: nil)
+    def initialize(converter, ansi, cursor, width: nil, height: nil)
       @converter = converter
       @ansi = ansi
       @cursor = cursor
-      @metadata = metadata
       @width = width
       @height = height
 
       freeze
     end
 
-    # Create a Renderer with new metadata
-    #
-    # @example
-    #   renderer.with_metadata(metadata)
-    #
-    # @param [Slideck::Metadata] metadata
-    #   the configuration metadata
-    #
-    # @return [Slideck::Renderer]
-    #
-    # @api public
-    def with_metadata(metadata)
-      self.class.new(@converter, @ansi, @cursor, metadata,
-                     width: @width, height: @height)
-    end
-
     # Render a slide
     #
     # @example
-    #   renderer.render("slide content", 1, 5)
+    #   renderer.render(metadata, slide, 1, 5)
     #
-    # @param [String, nil] slide
+    # @param [Slideck::Metadata] metadata
+    #   the global metadata
+    # @param [Hash{Symbol => Hash, String}, nil] slide
     #   the current slide to render
     # @param [Integer] current_num
     #   the current slide number
@@ -73,12 +56,13 @@ module Slideck
     # @return [String]
     #
     # @api public
-    def render(slide, current_num, num_of_slides)
+    def render(metadata, slide, current_num, num_of_slides)
       slide_metadata = slide && slide[:metadata]
       [].tap do |out|
-        out << render_content(slide) if slide
-        out << render_footer(slide_metadata)
-        out << render_pager(slide_metadata, current_num, num_of_slides)
+        out << render_content(metadata, slide) if slide
+        out << render_footer(metadata, slide_metadata)
+        out << render_pager(metadata, slide_metadata,
+                            current_num, num_of_slides)
       end.join
     end
 
@@ -98,15 +82,18 @@ module Slideck
 
     # Render slide content
     #
-    # @param [String] slide
+    # @param [Slideck::Metadata] metadata
+    #   the global metadata
+    # @param [Hash{Symbol => Hash, String}] slide
     #   the slide to render
     #
     # @return [String]
     #
     # @api private
-    def render_content(slide)
+    def render_content(metadata, slide)
       alignment, margin, symbols, theme =
-        *select_metadata(slide[:metadata], :align, :margin, :symbols, :theme)
+        *select_metadata(metadata, slide[:metadata], :align, :margin,
+                         :symbols, :theme)
       converted = convert_markdown(slide[:content], margin, symbols, theme)
 
       render_section(converted.lines, alignment, margin)
@@ -114,19 +101,21 @@ module Slideck
 
     # Render footer
     #
+    # @param [Slideck::Metadata] metadata
+    #   the global metadata
     # @param [Slideck::Metadata] slide_metadata
     #   the slide metadata
     #
     # @return [String]
     #
     # @api private
-    def render_footer(slide_metadata)
-      footer_metadata = pick_metadata(slide_metadata, :footer)
+    def render_footer(metadata, slide_metadata)
+      footer_metadata = pick_metadata(metadata, slide_metadata, :footer)
       return if (text = footer_metadata[:text]).empty?
 
-      alignment = footer_metadata[:align] || @metadata.footer[:align]
+      alignment = footer_metadata[:align] || metadata.footer[:align]
       margin, symbols, theme =
-        *select_metadata(slide_metadata, :margin, :symbols, :theme)
+        *select_metadata(metadata, slide_metadata, :margin, :symbols, :theme)
       converted = convert_markdown(text, margin, symbols, theme).chomp
 
       render_section(converted.lines, alignment, margin)
@@ -134,6 +123,8 @@ module Slideck
 
     # Render pager
     #
+    # @param [Slideck::Metadata] metadata
+    #   the global metadata
     # @param [Slideck::Metadata] slide_metadata
     #   the slide metadata
     # @param [Integer] current_num
@@ -144,13 +135,13 @@ module Slideck
     # @return [String]
     #
     # @api private
-    def render_pager(slide_metadata, current_num, num_of_slides)
-      pager_metadata = pick_metadata(slide_metadata, :pager)
+    def render_pager(metadata, slide_metadata, current_num, num_of_slides)
+      pager_metadata = pick_metadata(metadata, slide_metadata, :pager)
       return if (text = pager_metadata[:text]).empty?
 
-      alignment = pager_metadata[:align] || @metadata.pager[:align]
+      alignment = pager_metadata[:align] || metadata.pager[:align]
       margin, symbols, theme =
-        *select_metadata(slide_metadata, :margin, :symbols, :theme)
+        *select_metadata(metadata, slide_metadata, :margin, :symbols, :theme)
       formatted_text = format(text, page: current_num, total: num_of_slides)
       converted = convert_markdown(formatted_text, margin, symbols, theme).chomp
 
@@ -159,6 +150,8 @@ module Slideck
 
     # Select configuration(s) by name(s) from metadata
     #
+    # @param [Slideck::Metadata] metadata
+    #   the global metadata
     # @param [Slideck::Metadata] slide_metadata
     #   the slide metadata
     # @param [Array<Symbol>] names
@@ -167,14 +160,16 @@ module Slideck
     # @return [Array<Object>]
     #
     # @api private
-    def select_metadata(slide_metadata, *names)
+    def select_metadata(metadata, slide_metadata, *names)
       names.each_with_object([]) do |name, selected|
-        selected << pick_metadata(slide_metadata, name)
+        selected << pick_metadata(metadata, slide_metadata, name)
       end
     end
 
     # Pick configuration by name from metadata
     #
+    # @param [Slideck::Metadata] metadata
+    #   the global metadata
     # @param [Slideck::Metadata] slide_metadata
     #   the slide metadata
     # @param [Symbol] name
@@ -183,9 +178,9 @@ module Slideck
     # @return [Hash, Slideck::Alignment, Slideck::Margin, String, Symbol]
     #
     # @api private
-    def pick_metadata(slide_metadata, name)
+    def pick_metadata(metadata, slide_metadata, name)
       slide_metadata_item = slide_metadata && slide_metadata.send(name)
-      slide_metadata_item || @metadata.send(name)
+      slide_metadata_item || metadata.send(name)
     end
 
     # Render section with aligned lines

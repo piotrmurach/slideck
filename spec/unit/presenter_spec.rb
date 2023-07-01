@@ -26,13 +26,15 @@ RSpec.describe Slideck::Presenter do
         {content: "slide#{i + 1}", metadata: slide_metadata}
       end
       tracker = Slideck::Tracker.for(slides.size)
-      renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
+      renderer = Slideck::Renderer.new(converter, ansi, cursor,
                                        width: 20, height: 8)
-      presenter = described_class.new(slides, reader, renderer, tracker, output)
       reloaded_metadata = build_metadata({theme: {strong: :cyan}})
       reloaded_slides = [{content: "**Reloaded**", metadata: slide_metadata}]
+      presenter = described_class.new(reader, renderer, tracker, output) do
+        [reloaded_metadata, reloaded_slides]
+      end
 
-      presenter.reload(reloaded_metadata, reloaded_slides).render
+      presenter.reload.render
 
       expect(output.string.inspect).to eq([
         "\e[2J\e[1;1H",
@@ -48,9 +50,11 @@ RSpec.describe Slideck::Presenter do
                 {content: "slide2", metadata: slide_metadata},
                 {content: "slide3", metadata: slide_metadata}]
       tracker = Slideck::Tracker.for(slides.size)
-      renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
+      renderer = Slideck::Renderer.new(converter, ansi, cursor,
                                        width: 20, height: 8)
-      presenter = described_class.new(slides, reader, renderer, tracker, output)
+      presenter = described_class.new(reader, renderer, tracker, output) do
+        [metadata, slides]
+      end
       input << "q"
       input.rewind
 
@@ -69,9 +73,11 @@ RSpec.describe Slideck::Presenter do
                 {content: "slide2", metadata: slide_metadata},
                 {content: "slide3", metadata: slide_metadata}]
       tracker = Slideck::Tracker.for(slides.size)
-      renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
+      renderer = Slideck::Renderer.new(converter, ansi, cursor,
                                        width: 20, height: 8)
-      presenter = described_class.new(slides, reader, renderer, tracker, output)
+      presenter = described_class.new(reader, renderer, tracker, output) do
+        [metadata, slides]
+      end
       input << "n" << "l" << "p" << "h" << ?\C-x
       input.rewind
 
@@ -102,9 +108,11 @@ RSpec.describe Slideck::Presenter do
                 {content: "slide2", metadata: slide_metadata},
                 {content: "slide3", metadata: slide_metadata}]
       tracker = Slideck::Tracker.for(slides.size)
-      renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
+      renderer = Slideck::Renderer.new(converter, ansi, cursor,
                                        width: 20, height: 8)
-      presenter = described_class.new(slides, reader, renderer, tracker, output)
+      presenter = described_class.new(reader, renderer, tracker, output) do
+        [metadata, slides]
+      end
       reader.on(:keypress) do |event|
         reader.trigger(:keyleft) if event.value == "a"
         reader.trigger(:keyright) if event.value == "d"
@@ -148,9 +156,11 @@ RSpec.describe Slideck::Presenter do
                 {content: "slide2", metadata: slide_metadata},
                 {content: "slide3", metadata: slide_metadata}]
       tracker = Slideck::Tracker.for(slides.size)
-      renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
+      renderer = Slideck::Renderer.new(converter, ansi, cursor,
                                        width: 20, height: 8)
-      presenter = described_class.new(slides, reader, renderer, tracker, output)
+      presenter = described_class.new(reader, renderer, tracker, output) do
+        [metadata, slides]
+      end
       input << "$" << "^" << "\e"
       input.rewind
 
@@ -175,9 +185,11 @@ RSpec.describe Slideck::Presenter do
         {content: "slide#{i + 1}", metadata: slide_metadata}
       end
       tracker = Slideck::Tracker.for(slides.size)
-      renderer = Slideck::Renderer.new(converter, ansi, cursor, metadata,
+      renderer = Slideck::Renderer.new(converter, ansi, cursor,
                                        width: 20, height: 8)
-      presenter = described_class.new(slides, reader, renderer, tracker, output)
+      presenter = described_class.new(reader, renderer, tracker, output) do
+        [metadata, slides]
+      end
       input << "1" << "3" << "g" << "q" << ?\C-c
       input.rewind
 
@@ -196,6 +208,39 @@ RSpec.describe Slideck::Presenter do
         "\e[2J\e[1;1H",
         "\e[1;1Hslide13\n",
         "\e[8;14H13 / 15",
+        "\e[2J\e[1;1H\e[?25h"
+      ].join.inspect)
+    end
+
+    it "reloads slides with the 'r' and Ctrl+L keys and quits" do
+      slides = [{content: "slide1", metadata: slide_metadata},
+                {content: "slide2", metadata: slide_metadata}]
+      tracker = Slideck::Tracker.for(slides.size)
+      renderer = Slideck::Renderer.new(converter, ansi, cursor,
+                                       width: 20, height: 8)
+      i = -1
+      presenter = described_class.new(reader, renderer, tracker, output) do
+        if (i += 1).zero?
+          [metadata, slides]
+        else
+          [metadata, [{content: "reloaded#{i}", metadata: slide_metadata}]]
+        end
+      end
+      input << "r" << ?\C-l << "q"
+      input.rewind
+
+      presenter.start
+
+      expect(output.string.inspect).to eq([
+        "\e[?25l\e[2J\e[1;1H",
+        "\e[1;1Hslide1\n",
+        "\e[8;16H1 / 2",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hreloaded1\n",
+        "\e[8;16H1 / 1",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hreloaded2\n",
+        "\e[8;16H1 / 1",
         "\e[2J\e[1;1H\e[?25h"
       ].join.inspect)
     end

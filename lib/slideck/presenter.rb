@@ -7,8 +7,6 @@ module Slideck
   class Presenter
     # Create a Presenter
     #
-    # @param [Array<Hash>] slides
-    #   the slides to present
     # @param [TTY::Reader] reader
     #   the keyboard input reader
     # @param [Slideck::Renderer] renderer
@@ -17,14 +15,16 @@ module Slideck
     #   the tracker for slides
     # @param [IO] output
     #   the output stream for the slides
+    # @param [Proc] reloader
+    #   the metadata and slides reloader
     #
     # @api public
-    def initialize(slides, reader, renderer, tracker, output)
-      @slides = slides
+    def initialize(reader, renderer, tracker, output, &reloader)
       @reader = reader
       @renderer = renderer
       @tracker = tracker
       @output = output
+      @reloader = reloader
       @stop = false
       @buffer = []
     end
@@ -32,20 +32,14 @@ module Slideck
     # Reload presentation
     #
     # @example
-    #   renderer.reload(metadata, slides)
-    #
-    # @param [Slideck::Metadata] metadata
-    #   the slides metadata
-    # @param [Array<Hash>] slides
-    #   the slides to present
+    #   presenter.reload
     #
     # @return [Slideck::Presenter]
     #
     # @api public
-    def reload(metadata, slides)
-      @slides = slides
-      @renderer = @renderer.with_metadata(metadata)
-      @tracker = @tracker.resize(slides.size)
+    def reload
+      @metadata, @slides = *@reloader.()
+      @tracker = @tracker.resize(@slides.size)
       self
     end
 
@@ -58,6 +52,7 @@ module Slideck
     #
     # @api public
     def start
+      reload
       @reader.subscribe(self)
       hide_cursor
 
@@ -108,7 +103,10 @@ module Slideck
     # @api private
     def render_slide
       @output.print @renderer.render(
-        @slides[@tracker.current], @tracker.current + 1, @tracker.total)
+        @metadata,
+        @slides[@tracker.current],
+        @tracker.current + 1,
+        @tracker.total)
     end
 
     # Hide cursor
@@ -145,6 +143,7 @@ module Slideck
       when "$" then go_to_last
       when "g" then go_to_slide
       when /\d/ then add_to_buffer(event.value)
+      when "r" then keyctrl_l
       when "q" then keyctrl_x
       end
     end
@@ -170,6 +169,15 @@ module Slideck
     end
     alias keybackspace keyleft
     alias keypage_up keyleft
+
+    # Reload presentation
+    #
+    # @return [void]
+    #
+    # @api private
+    def keyctrl_l(*)
+      reload
+    end
 
     # Exit presentation
     #
