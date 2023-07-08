@@ -5,7 +5,9 @@ RSpec.describe Slideck::CLI, "#start" do
   let(:output) { StringIO.new("".dup, "w+") }
   let(:error_output) { StringIO.new("".dup, "w+") }
   let(:env) { {"TTY_TEST" => true} }
-  let(:screen) { class_double(TTY::Screen, width: 40, height: 20) }
+  let(:windows?) { RSpec::Support::OS.windows? }
+  let(:screen_methods) { {width: 40, height: 20, windows?: windows?} }
+  let(:screen) { class_double(TTY::Screen, **screen_methods) }
   let(:runner) { Slideck::Runner.new(screen, input, output, env) }
 
   it "starts with a slides file and --color=always option and quits" do

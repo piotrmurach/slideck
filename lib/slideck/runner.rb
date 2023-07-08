@@ -170,7 +170,7 @@ module Slideck
       renderer = Renderer.new(converter, Strings::ANSI, TTY::Cursor,
                               width: @screen.width, height: @screen.height)
       tracker = Tracker.for(0)
-      Presenter.new(reader, renderer, tracker, @output, &reloader)
+      Presenter.new(reader, renderer, tracker, @screen, @output, &reloader)
     end
 
     # Build a listener for changes in a filename

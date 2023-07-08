@@ -4,9 +4,11 @@ RSpec.describe Slideck::Runner, "#run" do
   let(:output) { StringIO.new("".dup, "w+") }
   let(:input) { StringIO.new("".dup, "w+") }
   let(:env) { {"TTY_TEST" => true} }
+  let(:windows?) { RSpec::Support::OS.windows? }
+  let(:screen_methods) { {width: 40, height: 10, windows?: windows?} }
+  let(:screen) { class_double(TTY::Screen, **screen_methods) }
 
   it "displays no slides and quits" do
-    screen = class_double(TTY::Screen, width: 40, height: 10)
     runner = described_class.new(screen, input, output, env)
     input << "q"
     input.rewind
@@ -21,7 +23,6 @@ RSpec.describe Slideck::Runner, "#run" do
   end
 
   it "displays slides with color and quits" do
-    screen = class_double(TTY::Screen, width: 40, height: 10)
     runner = described_class.new(screen, input, output, env)
     input << "q"
     input.rewind
@@ -43,7 +44,6 @@ RSpec.describe Slideck::Runner, "#run" do
   end
 
   it "displays slides without color and quits" do
-    screen = class_double(TTY::Screen, width: 40, height: 10)
     runner = described_class.new(screen, input, output, env)
     input << "q"
     input.rewind
@@ -65,7 +65,6 @@ RSpec.describe Slideck::Runner, "#run" do
   end
 
   it "reloads slides from watched file and quits" do
-    screen = class_double(TTY::Screen, width: 40, height: 10)
     listener = instance_spy(Listen::Listener)
     slides_file = fixtures_path("empty.md")
     allow(Listen).to receive(:to).and_yield([slides_file], [], [])
@@ -86,7 +85,6 @@ RSpec.describe Slideck::Runner, "#run" do
   end
 
   it "doesn't reload slides from an unchanged file and quits" do
-    screen = class_double(TTY::Screen, width: 40, height: 10)
     listener = instance_spy(Listen::Listener)
     allow(Listen).to receive(:to).and_yield([], [], []).and_return(listener)
     runner = described_class.new(screen, input, output, env)
@@ -103,7 +101,6 @@ RSpec.describe Slideck::Runner, "#run" do
   end
 
   it "stops the listener before quitting" do
-    screen = class_double(TTY::Screen, width: 40, height: 10)
     listener = instance_spy(Listen::Listener)
     allow(Listen).to receive(:to).and_return(listener)
     runner = described_class.new(screen, input, output, env)
@@ -116,7 +113,6 @@ RSpec.describe Slideck::Runner, "#run" do
   end
 
   it "doesn't watch for changes in file with slides" do
-    screen = class_double(TTY::Screen, width: 40, height: 10)
     allow(Listen).to receive(:to)
     runner = described_class.new(screen, input, output, env)
     input << "q"

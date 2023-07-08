@@ -18,6 +18,22 @@ RSpec.describe Slideck::Renderer do
     Slideck::Metadata.from(meta_converter, custom_metadata, {})
   end
 
+  describe "#resize" do
+    it "creates an instance with a new screen size" do
+      metadata = build_metadata({})
+      slide = {content: "content", metadata: build_slide_metadata({})}
+      renderer = described_class.new(converter, ansi, cursor,
+                                     width: 20, height: 8)
+
+      new_renderer = renderer.resize(40, 16)
+
+      expect(new_renderer.render(metadata, slide, 1, 1).inspect).to eq([
+        "\e[1;1Hcontent\n",
+        "\e[16;36H1 / 1"
+      ].join.inspect)
+    end
+  end
+
   describe "#render" do
     it "renders page number without slide content" do
       metadata = build_metadata({})

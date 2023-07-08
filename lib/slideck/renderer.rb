@@ -39,6 +39,23 @@ module Slideck
       freeze
     end
 
+    # Create a Renderer with a new screen size
+    #
+    # @example
+    #   renderer.resize(200, 50)
+    #
+    # @param [Integer] width
+    #   the screen width
+    # @param [Integer] height
+    #   the screen height
+    #
+    # @return [Slideck::Renderer]
+    #
+    # @api public
+    def resize(width, height)
+      self.class.new(@converter, @ansi, @cursor, width: width, height: height)
+    end
+
     # Render a slide
     #
     # @example

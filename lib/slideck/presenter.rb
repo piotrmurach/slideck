@@ -5,6 +5,14 @@ module Slideck
   #
   # @api private
   class Presenter
+    # Terminal screen size change signal
+    #
+    # @return [String]
+    #
+    # @api private
+    TERM_SCREEN_SIZE_CHANGE_SIG = "WINCH"
+    private_constant :TERM_SCREEN_SIZE_CHANGE_SIG
+
     # Create a Presenter
     #
     # @param [TTY::Reader] reader
@@ -13,16 +21,19 @@ module Slideck
     #   the slides renderer
     # @param [Slideck::Tracker] tracker
     #   the tracker for slides
+    # @param [TTY::Screen] screen
+    #   the terminal screen size
     # @param [IO] output
     #   the output stream for the slides
     # @param [Proc] reloader
     #   the metadata and slides reloader
     #
     # @api public
-    def initialize(reader, renderer, tracker, output, &reloader)
+    def initialize(reader, renderer, tracker, screen, output, &reloader)
       @reader = reader
       @renderer = renderer
       @tracker = tracker
+      @screen = screen
       @output = output
       @reloader = reloader
       @stop = false
@@ -55,6 +66,7 @@ module Slideck
       reload
       @reader.subscribe(self)
       hide_cursor
+      subscribe_to_screen_resize { resize.render }
 
       until @stop
         render
@@ -79,9 +91,12 @@ module Slideck
 
     # Render presentation on cleared screen
     #
+    # @example
+    #   presenter.render
+    #
     # @return [void]
     #
-    # @api private
+    # @api public
     def render
       clear_screen
       render_slide
@@ -125,6 +140,30 @@ module Slideck
     # @api private
     def show_cursor
       @output.print @renderer.cursor.show
+    end
+
+    # Subscribe to the terminal screen size change signal
+    #
+    # @param [Proc] resizer
+    #   the presentation resizer
+    #
+    # @return [void]
+    #
+    # @api private
+    def subscribe_to_screen_resize(&resizer)
+      return if @screen.windows?
+
+      Signal.trap(TERM_SCREEN_SIZE_CHANGE_SIG, &resizer)
+    end
+
+    # Resize presentation
+    #
+    # @return [Slideck::Presenter]
+    #
+    # @api private
+    def resize
+      @renderer = @renderer.resize(@screen.width, @screen.height)
+      self
     end
 
     # Handle a keypress event
