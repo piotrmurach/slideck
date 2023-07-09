@@ -178,8 +178,8 @@ module Slideck
       case event.value
       when "n", "l" then keyright
       when "p", "h" then keyleft
-      when "^" then go_to_first
-      when "$" then go_to_last
+      when "f", "^" then go_to_first
+      when "t", "$" then go_to_last
       when "g" then go_to_slide
       when /\d/ then add_to_buffer(event.value)
       when "r" then keyctrl_l

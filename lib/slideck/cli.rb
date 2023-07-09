@@ -15,9 +15,9 @@ module Slideck
       desc "Present Markdown-powered slide decks in the terminal"
 
       desc "Controls:",
-           "  First   ^",
+           "  First   f, ^",
            "  Go to   1..n+g",
-           "  Last    $",
+           "  Last    t, $",
            "  Next    n, l, Right, Spacebar",
            "  Prev    p, h, Left, Backspace",
            "  Reload  r, Ctrl+l",

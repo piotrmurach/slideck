@@ -108,9 +108,9 @@ RSpec.describe Slideck::CLI, "#start" do
       Present Markdown-powered slide decks in the terminal
 
       Controls:
-        First   ^
+        First   f, ^
         Go to   1..n+g
-        Last    $
+        Last    t, $
         Next    n, l, Right, Spacebar
         Prev    p, h, Left, Backspace
         Reload  r, Ctrl+l

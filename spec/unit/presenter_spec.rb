@@ -169,13 +169,19 @@ RSpec.describe Slideck::Presenter do
         reader, renderer, tracker, screen, output) do
         [metadata, slides]
       end
-      input << "$" << "^" << "\e"
+      input << "t" << "f" << "$" << "^" << "\e"
       input.rewind
 
       presenter.start
 
       expect(output.string.inspect).to eq([
         "\e[?25l\e[2J\e[1;1H",
+        "\e[1;1Hslide1\n",
+        "\e[8;16H1 / 3",
+        "\e[2J\e[1;1H",
+        "\e[1;1Hslide3\n",
+        "\e[8;16H3 / 3",
+        "\e[2J\e[1;1H",
         "\e[1;1Hslide1\n",
         "\e[8;16H1 / 3",
         "\e[2J\e[1;1H",
