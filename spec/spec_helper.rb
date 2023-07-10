@@ -15,6 +15,11 @@ if ENV["COVERAGE"] == "true"
   end
 end
 
+if RUBY_VERSION.to_f >= 2.5
+  require "warning"
+  Warning.ignore(//, /.*(listen|rouge|unicode_utils)/)
+end
+
 require "slideck"
 require "stringio"
 

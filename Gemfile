@@ -16,4 +16,5 @@ end
 if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
   gem "coveralls_reborn", "~> 0.24.0"
   gem "simplecov", "~> 0.21.0"
+  gem "warning", "~> 1.3"
 end
