@@ -99,5 +99,55 @@ module Slideck
       freeze
     end
     private_class_method :new
+
+    # Determine equivalence with another object
+    #
+    # @example
+    #   metadata == other
+    #
+    # @param [Object] other
+    #   the other object to determine equivalence with
+    #
+    # @return [Boolean]
+    #   true if this object is equivalent to the other, false otherwise
+    #
+    # @api public
+    def ==(other)
+      other.is_a?(self.class) &&
+        @metadata.keys.all? do |name|
+          send(name) == other.send(name)
+        end
+    end
+
+    # Determine equality with another object
+    #
+    # @example
+    #   metadata.eql?(other)
+    #
+    # @param [Object] other
+    #   the other object to determine equality with
+    #
+    # @return [Boolean]
+    #   true if this object is equal to the other, false otherwise
+    #
+    # @api public
+    def eql?(other)
+      instance_of?(other.class) &&
+        @metadata.keys.all? do |name|
+          send(name).eql?(other.send(name))
+        end
+    end
+
+    # Generate hash value of this metadata
+    #
+    # @example
+    #   metadata.hash
+    #
+    # @return [Integer]
+    #
+    # @api public
+    def hash
+      [self.class, *@metadata.keys.map { |name| send(name) }].hash
+    end
   end # Metadata
 end # Slideck

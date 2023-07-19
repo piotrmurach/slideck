@@ -16,10 +16,12 @@ require_relative "metadata"
 require_relative "metadata_converter"
 require_relative "metadata_defaults"
 require_relative "metadata_parser"
+require_relative "metadata_wrapper"
 require_relative "parser"
 require_relative "presenter"
 require_relative "renderer"
 require_relative "tracker"
+require_relative "transformer"
 
 module Slideck
   # Parse and display slides
@@ -64,7 +66,8 @@ module Slideck
     #
     # @api public
     def run(filename, color: nil, watch: nil)
-      presenter = build_presenter(color) { read_slides(filename) }
+      transformer = build_transformer
+      presenter = build_presenter(color) { transformer.read(filename) }
 
       if watch
         listener = build_listener(filename) { presenter.reload.render }
@@ -78,79 +81,36 @@ module Slideck
 
     private
 
-    # Read slides
+    # Build transformer
     #
-    # @param [String] filename
-    #   the filename to read slides from
-    #
-    # @return [Array<Slideck::Metadata, Array<Hash>>]
+    # @return [Slideck::Transformer]
     #
     # @api private
-    def read_slides(filename)
-      parse_slides(load_slides(filename))
-    end
-
-    # Load slides
-    #
-    # @param [String] filename
-    #   the filename to load slides from
-    #
-    # @return [String]
-    #
-    # @api private
-    def load_slides(filename)
+    def build_transformer
       loader = Loader.new(::File)
-      loader.load(filename)
+      Transformer.new(loader, build_parser, build_metadata_wrapper)
     end
 
-    # Parse slides
+    # Build parser
     #
-    # @param [String] content
-    #   the content with metadata and slides
-    #
-    # @return [Array<Slideck::Metadata, Array<Hash>>]
+    # @return [Slideck::Parser]
     #
     # @api private
-    def parse_slides(content)
-      metadata_parser = MetadataParser.new(::YAML, permitted_classes: [Symbol],
-                                                   symbolize_names: true)
-      parser = Parser.new(::StringScanner, metadata_parser)
-      wrap_metadata(parser.parse(content))
+    def build_parser
+      metadata_parser = MetadataParser.new(
+        ::YAML, permitted_classes: [Symbol], symbolize_names: true)
+      Parser.new(::StringScanner, metadata_parser)
     end
 
-    # Wrap parsed slides metadata
+    # Build metadata wrapper
     #
-    # @param [Hash] deck
-    #   the deck of parsed slides
-    #
-    # @return [Array<Slideck::Metadata, Hash>]
+    # @return [Slideck::MetadataWrapper]
     #
     # @api private
-    def wrap_metadata(deck)
-      metadata_defaults = MetadataDefaults.new(Alignment, Margin)
-      metadata = build_metadata(deck[:metadata], metadata_defaults)
-      slides = deck[:slides].map do |slide|
-        {content: slide[:content],
-         metadata: build_metadata(slide[:metadata], {})}
-      end
-
-      [metadata, slides]
-    end
-
-    # Build metadata
-    #
-    # @param [Hash{Symbol => Object}] custom_metadata
-    #   the custom metadata
-    # @param [#merge] metadata_defaults
-    #   the metadata defaults to merge with
-    #
-    # @return [Slideck::Metadata]
-    #
-    # @api private
-    def build_metadata(custom_metadata, metadata_defaults)
+    def build_metadata_wrapper
       metadata_converter = MetadataConverter.new(Alignment, Margin)
-
-      Metadata.from(metadata_converter, custom_metadata, metadata_defaults)
+      metadata_defaults = MetadataDefaults.new(Alignment, Margin)
+      MetadataWrapper.new(Metadata, metadata_converter, metadata_defaults)
     end
 
     # Build presenter
