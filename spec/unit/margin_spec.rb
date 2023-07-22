@@ -65,9 +65,17 @@ RSpec.describe Slideck::Margin do
 
     it "raises when given a hash with an invalid side name" do
       expect {
-        described_class.from_hash({center: 1})
+        described_class.from_hash({invalid: 1})
       }.to raise_error(Slideck::InvalidArgumentError,
-                       "unknown name for margin: :center.\n" \
+                       "unknown name for margin: :invalid.\n" \
+                       "Valid names are: top, left, right and bottom.")
+    end
+
+    it "raises when given a hash with invalid side names" do
+      expect {
+        described_class.from_hash({invalid: 1, unknown: 2})
+      }.to raise_error(Slideck::InvalidArgumentError,
+                       "unknown names for margin: :invalid, :unknown.\n" \
                        "Valid names are: top, left, right and bottom.")
     end
 

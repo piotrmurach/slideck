@@ -58,9 +58,7 @@ RSpec.describe Slideck::MetadataParser, "#parse" do
   end
 
   it "parses permitting symbols as an argument" do
-    yaml_parser = double(:yaml)
-    allow(yaml_parser).to receive(:respond_to?).and_return(:safe_load)
-    allow(yaml_parser).to receive(:safe_load).and_return({})
+    yaml_parser = double(:yaml, safe_load: {})
     parser = described_class.new(yaml_parser, permitted_classes: [Symbol],
                                               symbolize_names: false)
     allow(parser).to receive(:parse_method_params)
@@ -73,9 +71,7 @@ RSpec.describe Slideck::MetadataParser, "#parse" do
   end
 
   it "parses permitting symbols as an option" do
-    yaml_parser = double(:yaml)
-    allow(yaml_parser).to receive(:respond_to?).and_return(:safe_load)
-    allow(yaml_parser).to receive(:safe_load).and_return({})
+    yaml_parser = double(:yaml, load: {})
     parser = described_class.new(yaml_parser, permitted_classes: [Symbol],
                                               symbolize_names: false)
     allow(parser).to receive(:parse_method_params)
@@ -83,7 +79,7 @@ RSpec.describe Slideck::MetadataParser, "#parse" do
 
     parser.parse(":align: center")
 
-    expect(yaml_parser).to have_received(:safe_load)
+    expect(yaml_parser).to have_received(:load)
       .with(":align: center", {permitted_classes: [Symbol]})
   end
 end
