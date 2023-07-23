@@ -2,7 +2,7 @@
 
 RSpec.describe Slideck::Loader, "#load" do
   it "raises when no slides location is given" do
-    loader = described_class.new(::File)
+    loader = described_class.new(File)
 
     expect {
       loader.load(nil)
@@ -11,7 +11,7 @@ RSpec.describe Slideck::Loader, "#load" do
   end
 
   it "raises when location doesn't exist" do
-    loader = described_class.new(::File)
+    loader = described_class.new(File)
 
     expect {
       loader.load("unknown")

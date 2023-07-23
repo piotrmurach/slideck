@@ -2,8 +2,8 @@
 
 RSpec.describe Slideck::MetadataParser, "#parse" do
   it "parses without symbolizing names" do
-    parser = described_class.new(::YAML, permitted_classes: [],
-                                         symbolize_names: false)
+    parser = described_class.new(YAML, permitted_classes: [],
+                                       symbolize_names: false)
 
     metadata = parser.parse("align: center\nfooter: footer content")
 
@@ -14,8 +14,8 @@ RSpec.describe Slideck::MetadataParser, "#parse" do
   end
 
   it "parses with symbolizing names" do
-    parser = described_class.new(::YAML, permitted_classes: [],
-                                         symbolize_names: true)
+    parser = described_class.new(YAML, permitted_classes: [],
+                                       symbolize_names: true)
 
     metadata = parser.parse("align: center\nfooter: footer content")
 
@@ -26,8 +26,8 @@ RSpec.describe Slideck::MetadataParser, "#parse" do
   end
 
   it "parses without custom symbolizing names" do
-    parser = described_class.new(::YAML, permitted_classes: [],
-                                         symbolize_names: false)
+    parser = described_class.new(YAML, permitted_classes: [],
+                                       symbolize_names: false)
     allow(parser).to receive(:parse_method_params).and_return([])
 
     metadata = parser.parse("align: center\nfooter: footer content")
@@ -45,8 +45,8 @@ RSpec.describe Slideck::MetadataParser, "#parse" do
       - align: left
       - text: footer content
     EOS
-    parser = described_class.new(::YAML, permitted_classes: [],
-                                         symbolize_names: true)
+    parser = described_class.new(YAML, permitted_classes: [],
+                                       symbolize_names: true)
     allow(parser).to receive(:parse_method_params).and_return([])
 
     metadata = parser.parse(content)
