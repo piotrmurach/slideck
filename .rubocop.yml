@@ -2,6 +2,9 @@ AllCops:
   NewCops: enable
   TargetRubyVersion: 2.0
 
+Gemspec/DevelopmentDependencies:
+  Enabled: false
+
 Layout/FirstArrayElementIndentation:
   EnforcedStyle: consistent
 
@@ -10,16 +13,49 @@ Layout/FirstHashElementIndentation:
 
 Layout/LineLength:
   Max: 80
+  AllowedPatterns:
+    - "spec.description\\s="
+
+Layout/MultilineMethodCallBraceLayout:
+  EnforcedStyle: same_line
 
 Layout/SpaceInsideHashLiteralBraces:
   EnforcedStyle: no_space
 
 Metrics/BlockLength:
   Exclude:
-    - "spec/**/*"
+    - "**/spec/**/*"
+    - "**/*.gemspec"
+
+Metrics/ClassLength:
+  Max: 120
+
+Metrics/CyclomaticComplexity:
+  AllowedMethods:
+    - keypress
+
+Metrics/MethodLength:
+  AllowedMethods:
+    - split_into_slides
+
+Metrics/PerceivedComplexity:
+  Max: 5
+  AllowedMethods:
+    - convert_to_array
+
+Naming/HeredocDelimiterNaming:
+  Enabled: false
+
+Naming/RescuedExceptionsVariableName:
+  PreferredName: err
 
 Style/AccessorGrouping:
   EnforcedStyle: separated
+
+Style/BlockDelimiters:
+  AllowedMethods:
+    - expect
+    - let
 
 Style/CommentedKeyword:
   Enabled: false
@@ -27,6 +63,9 @@ Style/CommentedKeyword:
 Style/FetchEnvVar:
   AllowedVars:
     - COVERAGE
+
+Style/IfUnlessModifier:
+  Enabled: false
 
 Style/LambdaCall:
   EnforcedStyle: braces
