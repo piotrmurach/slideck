@@ -22,3 +22,7 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
   gem "simplecov", "~> 0.21.0"
   gem "warning", "~> 1.3"
 end
+
+if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+  gem "rubocop-performance", "~> 1.18"
+end
