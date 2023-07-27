@@ -2,7 +2,7 @@
 
 require "open3"
 
-RSpec.describe "executable" do
+RSpec.describe "executable", :aggregate_failures do
   it "runs the slidedeck executable without an error and quits",
      unless: RSpec::Support::OS.windows? do
     slides_path = fixtures_path("slides.md")

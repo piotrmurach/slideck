@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Slideck::CLI, "#start" do
+RSpec.describe Slideck::CLI, "#start", :aggregate_failures do
   let(:input) { StringIO.new("".dup, "w+") }
   let(:output) { StringIO.new("".dup, "w+") }
   let(:error_output) { StringIO.new("".dup, "w+") }
