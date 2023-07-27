@@ -29,11 +29,9 @@ RSpec.describe Slideck::Tracker do
     it "changes by moving forward and backward" do
       tracker = described_class.new(0, 5)
 
-      tracker = tracker.next
-      tracker = tracker.next
-      expect(tracker.current).to eq(2)
-
+      2.times { tracker = tracker.next }
       tracker = tracker.previous
+
       expect(tracker.current).to eq(1)
     end
 

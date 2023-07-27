@@ -21,36 +21,36 @@ RSpec.describe Slideck::Alignment do
     it "creates alignment from a string with a single value" do
       alignment = described_class.from("right")
 
-      expect(alignment.horizontal).to eq("right")
-      expect(alignment.vertical).to eq("center")
+      expect(alignment).to have_attributes(horizontal: "right",
+                                           vertical: "center")
     end
 
     it "creates alignment from a string with a single value and default" do
       alignment = described_class.from("right", default: "bottom")
 
-      expect(alignment.horizontal).to eq("right")
-      expect(alignment.vertical).to eq("bottom")
+      expect(alignment).to have_attributes(horizontal: "right",
+                                           vertical: "bottom")
     end
 
     it "creates alignment from a string with two values space-separated" do
       alignment = described_class.from("right top")
 
-      expect(alignment.horizontal).to eq("right")
-      expect(alignment.vertical).to eq("top")
+      expect(alignment).to have_attributes(horizontal: "right",
+                                           vertical: "top")
     end
 
     it "creates alignment from a string with a comma separator" do
       alignment = described_class.from("right,top")
 
-      expect(alignment.horizontal).to eq("right")
-      expect(alignment.vertical).to eq("top")
+      expect(alignment).to have_attributes(horizontal: "right",
+                                           vertical: "top")
     end
 
     it "creates alignment from a string with a comma and space separator" do
       alignment = described_class.from("right , top")
 
-      expect(alignment.horizontal).to eq("right")
-      expect(alignment.vertical).to eq("top")
+      expect(alignment).to have_attributes(horizontal: "right",
+                                           vertical: "top")
     end
   end
 
@@ -58,8 +58,8 @@ RSpec.describe Slideck::Alignment do
     it "creates alignemt with array-like helper method" do
       alignment = described_class["right", "top"]
 
-      expect(alignment.horizontal).to eq("right")
-      expect(alignment.vertical).to eq("top")
+      expect(alignment).to have_attributes(horizontal: "right",
+                                           vertical: "top")
     end
 
     it "raises when value is invalid" do
