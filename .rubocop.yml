@@ -1,6 +1,7 @@
 require:
   - rubocop-performance
   - rubocop-rake
+  - rubocop-rspec
 
 AllCops:
   NewCops: enable
@@ -54,6 +55,22 @@ Naming/RescuedExceptionsVariableName:
   PreferredName: err
 
 Performance/UnfreezeString:
+  Enabled: false
+
+RSpec/DescribeClass:
+  Exclude:
+    - "**/spec/integration/**/*"
+
+RSpec/ExampleLength:
+  Enabled: false
+
+RSpec/FilePath:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+
+RSpec/VerifiedDoubles:
   Enabled: false
 
 Style/AccessorGrouping:

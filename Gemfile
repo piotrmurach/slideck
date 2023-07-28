@@ -26,4 +26,5 @@ end
 if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
   gem "rubocop-performance", "~> 1.18"
   gem "rubocop-rake", "~> 0.6"
+  gem "rubocop-rspec", "~> 2.22"
 end
