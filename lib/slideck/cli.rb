@@ -65,6 +65,22 @@ module Slideck
       desc "Watch for changes in the file with slides"
     end
 
+    # The error exit code
+    #
+    # @return [Integer]
+    #
+    # @api private
+    CODE_ERROR = 1
+    private_constant :CODE_ERROR
+
+    # The success exit code
+    #
+    # @return [Integer]
+    #
+    # @api private
+    CODE_SUCCESS = 0
+    private_constant :CODE_SUCCESS
+
     # The pattern to detect color option
     #
     # @return [Regexp]
@@ -140,7 +156,7 @@ module Slideck
       return unless params[:version]
 
       @output.puts VERSION
-      exit
+      exit_success
     end
 
     # Print help
@@ -154,7 +170,7 @@ module Slideck
       return unless params[:help] || file_missing?
 
       @output.print help
-      exit
+      exit_success
     end
 
     # Check whether a file is missing
@@ -177,7 +193,7 @@ module Slideck
       return unless params.errors.any?
 
       @error_output.puts params.errors.summary
-      exit 1
+      exit_error
     end
 
     # Rescue errors
@@ -195,7 +211,7 @@ module Slideck
       raise err if params[:debug]
 
       @error_output.puts "Error: #{err}"
-      exit 1
+      exit_error
     end
 
     # Check whether no color environment variable is present
@@ -225,6 +241,28 @@ module Slideck
     # @api private
     def color(no_color_env)
       params[:no_color] || no_color_env ? :never : params[:color]
+    end
+
+    # Exit with the error code
+    #
+    # @raise [SystemExit]
+    #
+    # @return [void]
+    #
+    # @api private
+    def exit_error
+      exit CODE_ERROR
+    end
+
+    # Exit with the success code
+    #
+    # @raise [SystemExit]
+    #
+    # @return [void]
+    #
+    # @api private
+    def exit_success
+      exit CODE_SUCCESS
     end
   end # CLI
 end # Slideck
