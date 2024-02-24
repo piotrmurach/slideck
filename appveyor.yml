@@ -1,6 +1,7 @@
 ---
 skip_commits:
   files:
+    - "assets/**"
     - "bin/**"
     - "*.md"
 install:
