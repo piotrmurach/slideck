@@ -1,3 +1,8 @@
+<div align="center">
+  <img src="https://github.com/piotrmurach/slideck/blob/master/assets/slideck_logo.svg"
+       width="360" alt="slideck logo"/>
+</div>
+
 # Slideck
 
 [![Gem Version](https://badge.fury.io/rb/slideck.svg)][gem]
