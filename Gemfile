@@ -18,13 +18,13 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.1.0")
 end
 
 if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
-  gem "coveralls_reborn", "~> 0.24.0"
-  gem "simplecov", "~> 0.21.0"
   gem "warning", "~> 1.3"
 end
 
 if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+  gem "coveralls_reborn", "~> 0.28.0"
   gem "rubocop-performance", "~> 1.18"
   gem "rubocop-rake", "~> 0.6"
   gem "rubocop-rspec", "~> 2.22"
+  gem "simplecov", "~> 0.22.0"
 end
