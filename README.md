@@ -21,16 +21,16 @@
 
 ## Features
 
-* Write slides in the **Markdown** with extended syntax.
+* Compose slides in **Markdown** with extended syntax.
 * Show code snippets in [fenced code blocks](https://www.markdownguide.org/extended-syntax/#fenced-code-blocks).
-* Syntax highlight code for [over 200 languages](https://github.com/rouge-ruby/rouge/blob/master/docs/Languages.md).
+* Highlight code syntax for [over 200 languages](https://github.com/rouge-ruby/rouge/blob/master/docs/Languages.md).
 * Create Markdown [tables](https://www.markdownguide.org/extended-syntax/#tables) with advanced formatting.
 * [Align](#21-align) slide content with familiar CSS syntax.
-* Add [margin](#23-margin) around content for all or a single slide.
-* Track progress through the slides with a [pager](#24-pager).
+* Add [margins](#23-margin) around content for all slides or a single slide.
+* Track progress through the slide deck with a [pager](#24-pager).
 * Display a [footer](#22-footer) at the bottom of every slide.
-* Apply custom [symbols](#25-symbols) and style [theme](#26-theme) to content.
-* Auto reload presentation when a file with slides changes.
+* Apply custom [symbols](#25-symbols) and style [themes](#26-theme) to content.
+* Auto reload the presentation when a file with slides changes.
 
 ## Installation
 
