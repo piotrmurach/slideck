@@ -6,13 +6,13 @@
 # Slideck
 
 [![Gem Version](https://badge.fury.io/rb/slideck.svg)][gem]
-[![Actions CI](https://github.com/piotrmurach/slideck/workflows/CI/badge.svg?branch=master)][gh_actions_ci]
+[![Actions CI](https://github.com/piotrmurach/slideck/actions/workflows/ci.yml/badge.svg)][gh_actions_ci]
 [![Build status](https://ci.appveyor.com/api/projects/status/kvlo53t54qimbfqy?svg=true)][appveyor]
 [![Maintainability](https://api.codeclimate.com/v1/badges/c96e8367481519c38a06/maintainability)][codeclimate]
 [![Coverage Status](https://coveralls.io/repos/github/piotrmurach/slideck/badge.svg)][coverage]
 
 [gem]: https://badge.fury.io/rb/slideck
-[gh_actions_ci]: https://github.com/piotrmurach/slideck/actions?query=workflow%3ACI
+[gh_actions_ci]: https://github.com/piotrmurach/slideck/actions/workflows/ci.yml
 [appveyor]: https://ci.appveyor.com/project/piotrmurach/slideck
 [codeclimate]:https://codeclimate.com/github/piotrmurach/slideck/maintainability
 [coverage]: https://coveralls.io/github/piotrmurach/slideck
