@@ -28,3 +28,7 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
   gem "rubocop-rspec", "~> 2.26"
   gem "simplecov", "~> 0.22.0"
 end
+
+if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.4.0")
+  gem "logger", "~> 1.7"
+end
